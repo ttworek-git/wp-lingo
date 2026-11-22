@@ -14,8 +14,8 @@
 body{margin:0;background:#fff;color:var(--txt)}
 #app{max-width:640px;margin:0 auto;padding:12px 16px 220px;min-height:100vh}
 .hud{display:flex;justify-content:space-between;font-weight:800;font-size:17px;padding:8px 4px 12px;position:sticky;top:0;background:#fff;z-index:5}
-.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.tab{border:2px solid var(--line);border-radius:14px;padding:10px 4px;background:#fff;font-weight:700;cursor:pointer;font-size:14px;color:var(--txt)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tab{border:2px solid var(--line);border-radius:14px;padding:8px 2px;background:#fff;font-weight:700;cursor:pointer;font-size:13px;line-height:1.35;color:var(--txt)}
 .tab.on{border-color:var(--c);background:var(--c);color:#fff}
 .banner{background:var(--c);color:#fff;border-radius:18px;padding:16px;margin:14px 0 30px;box-shadow:0 5px 0 rgba(0,0,0,.18)}
 .banner h2{margin:0 0 6px;font-size:19px}
@@ -43,7 +43,7 @@ body{margin:0;background:#fff;color:var(--txt)}
 .badge{background:var(--r);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;margin-left:4px}
 .top{display:flex;align-items:center;gap:14px;padding-top:6px}
 .x{background:none;border:none;font-size:24px;cursor:pointer;color:#afafaf}
-.hh{font-weight:800;color:var(--r)}
+.hh{font-weight:800;color:#999}
 .card{margin-top:24px}
 .tag{font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.4px}
 .q{font-size:20px;line-height:1.4;margin:10px 0 0}
@@ -91,21 +91,24 @@ body{margin:0;background:#fff;color:var(--txt)}
 <div id="app"></div>
 <script src="daten-bwl.js" charset="UTF-8"></script>
 <script src="daten-steuer.js" charset="UTF-8"></script>
+<script src="daten-recht.js" charset="UTF-8"></script>
 <script src="faelle.js" charset="UTF-8"></script>
 <script>
-// ===== WP-Lingo App (Inhalte liegen in daten-bwl.js, daten-steuer.js, faelle.js) =====
+// ===== WP-Lingo App (Inhalte liegen in daten-bwl.js, daten-steuer.js, daten-recht.js, faelle.js) =====
 var miss=[];
 if(typeof BWL==="undefined")miss.push("daten-bwl.js");
 if(typeof STEUER==="undefined")miss.push("daten-steuer.js");
+if(typeof RECHT==="undefined")miss.push("daten-recht.js");
 if(typeof FAELLE==="undefined")miss.push("faelle.js");
 const C=[
  {title:"Angewandte BWL & VWL",short:"BWL / VWL",color:"#a560e8",icon:"📈",lessons:typeof BWL!=="undefined"?BWL:[]},
- {title:"Steuerrecht",short:"Steuerrecht",color:"#1cb0f6",icon:"💶",lessons:typeof STEUER!=="undefined"?STEUER:[]}
+ {title:"Steuerrecht",short:"Steuerrecht",color:"#1cb0f6",icon:"💶",lessons:typeof STEUER!=="undefined"?STEUER:[]},
+ {title:"Wirtschaftsrecht",short:"Wirtschaftsrecht",color:"#ff9600",icon:"⚖️",lessons:typeof RECHT!=="undefined"?RECHT:[]}
 ];
 const CASES=typeof FAELLE!=="undefined"?FAELLE:[];
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const app=$("#app");
-const KEY="wplingo-v2", HMAX=5, HREG=30*60*1000, GOAL=30, IV=[0,1,2,4,8,16,32], DAY=864e5;
+const KEY="wplingo-v2", GOAL=30, IV=[0,1,2,4,8,16,32], DAY=864e5;
 let tab=0, L=null, K=null;
 const today=(o=0)=>{const d=new Date();d.setDate(d.getDate()+o);return d.toLocaleDateString("sv")};
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -117,10 +120,9 @@ const ALL=C.flatMap(c=>c.lessons.flatMap(l=>l.qs));
 CASES.forEach(f=>{f.ci=C.findIndex(c=>c.short===f.area)});
 
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
-const S=Object.assign({xp:0,streak:0,lastDay:null,hearts:HMAX,heartTs:Date.now(),cards:{},done:{},dayXp:0,xpDay:today(),unlockAll:false,cases:{}},load());
+const S=Object.assign({xp:0,streak:0,lastDay:null,cards:{},done:{},dayXp:0,xpDay:today(),unlockAll:false,cases:{}},load());
 if(!S.cases)S.cases={};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function regen(){if(S.hearts>=HMAX){S.heartTs=Date.now();return}const n=Math.floor((Date.now()-S.heartTs)/HREG);if(n>0){S.hearts=Math.min(HMAX,S.hearts+n);S.heartTs+=n*HREG}if(S.hearts>=HMAX)S.heartTs=Date.now();save()}
 function dayCheck(){if(S.xpDay!==today()){S.xpDay=today();S.dayXp=0}}
 const streakNow=()=>(S.lastDay===today()||S.lastDay===today(-1))?S.streak:0;
 const box=q=>(S.cards[q.id]||{}).box||0;
@@ -129,7 +131,8 @@ const dueList=()=>ALL.filter(q=>S.cards[q.id]&&S.cards[q.id].due<=Date.now());
 function grade(q,ok,hint){const b=ok?(hint?Math.max(box(q),1):Math.min(box(q)+1,IV.length-1)):0;S.cards[q.id]={box:b,due:Date.now()+IV[b]*DAY}}
 function addXp(x){dayCheck();S.xp+=x;S.dayXp+=x;if(S.lastDay!==today()){S.streak=S.lastDay===today(-1)?S.streak+1:1;S.lastDay=today()}}
 
-function hud(){regen();dayCheck();return`<div class="hud"><span>🔥 ${streakNow()}</span><span>💎 ${fmt(S.xp)} XP</span><span>❤️ ${S.hearts}</span></div>`}
+function hud(){dayCheck();return`<div class="hud"><span>🔥 ${streakNow()}</span><span>💎 ${fmt(S.xp)} XP</span><span>🎯 ${Math.min(S.dayXp,GOAL)}/${GOAL}</span></div>`}
+function tabs(fn){return`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};${fn}()">${x.icon}<br>${x.short}</button>`).join("")}</div>`}
 function nav(a){const d=dueList().length;return`<nav class="nav">
 <button class="${a==="learn"?"on":""}" onclick="home()">🏠<small>Lernen</small></button>
 <button class="${a==="cases"?"on":""}" onclick="cases()">📝<small>Fälle</small></button>
@@ -138,7 +141,7 @@ function nav(a){const d=dueList().length;return`<nav class="nav">
 
 function home(){
   L=null;K=null;const c=C[tab],offs=[0,60,85,60,0,-60,-85,-60];
-  app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};home()">${x.icon} ${x.short}</button>`).join("")}</div>
+  app.innerHTML=hud()+tabs("home")+`
   <div class="banner" style="--c:${c.color}"><h2>${c.title}</h2><div>${pct(c.lessons.flatMap(l=>l.qs))} % gemeistert · ${c.lessons.reduce((s,l)=>s+l.qs.length,0)} Fragen</div>
   <div class="row"><span>🎯 ${Math.min(S.dayXp,GOAL)}/${GOAL} XP</span><div class="bar"><div style="width:${Math.min(100,S.dayXp/GOAL*100)}%"></div></div><button class="btn white" onclick="mix(${tab})">🎲 Mix</button></div></div>
   <div class="path">${c.lessons.map((l,li)=>{const n=S.done[tab+"-"+li]||0,open=S.unlockAll||li===0||!!S.done[tab+"-"+(li-1)];
@@ -155,14 +158,12 @@ function review(){
   if(!qs.length){L=null;app.innerHTML=hud()+`<div class="end"><div class="big">📚</div><h2>Noch nichts zu wiederholen</h2><p>Starte zuerst ein paar Lektionen. Fällige und falsch beantwortete Fragen landen dann automatisch hier.</p><div class="col"><button class="btn" onclick="home()">Zu den Lektionen</button></div></div>`+nav("review");return}
   begin(shuffle(qs.slice(0,10)),"review",null,null);
 }
-function begin(qs,mode,ci,li){K=null;if(mode!=="review"){regen();if(S.hearts<=0)return noHearts()}L={mode,ci,li,queue:qs,total:qs.length,done:0,mistakes:0,firstWrong:0,hinted:0,seen:new Set()};renderQ()}
-function noHearts(){const m=Math.max(1,Math.ceil((HREG-(Date.now()-S.heartTs))/60000));L=null;
-  app.innerHTML=hud()+`<div class="end"><div class="big">💔</div><h2>Keine Herzen mehr</h2><p>Nächstes Herz in ca. ${m} Min.</p><p>Tipp: Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück. Auch Klausurfälle kosten keine Herzen.</p><div class="col"><button class="btn" onclick="review()">🔁 Jetzt wiederholen</button><button class="btn sec" onclick="home()">Zurück</button></div></div>`+nav("learn")}
+function begin(qs,mode,ci,li){K=null;L={mode,ci,li,queue:qs,total:qs.length,done:0,mistakes:0,firstWrong:0,hinted:0,seen:new Set()};renderQ()}
 
 function renderQ(){
   const q=L.queue[0];L.sel=null;L.checked=false;L.hint=false;
   const c=C[q.ci],ord=shuffle(q.o.map((_,i)=>i));
-  app.innerHTML=`<div class="top"><button class="x" onclick="quit()">✕</button><div class="bar"><div style="width:${L.done/L.total*100}%"></div></div><span class="hh">${L.mode==="review"?"🔁":"❤️ "+S.hearts}</span></div>
+  app.innerHTML=`<div class="top"><button class="x" onclick="quit()">✕</button><div class="bar"><div style="width:${L.done/L.total*100}%"></div></div><span class="hh">${L.done}/${L.total}</span></div>
   <div class="card"><div class="tag" style="color:${c.color}">${c.icon} ${c.lessons[q.li].title}</div><h2 class="q">${q.q}</h2>
   <button id="hb" class="hintbtn" onclick="showHint()">💡 Tipp zur Herangehensweise</button><div id="hint" class="hint" hidden>💡 <b>Herangehensweise:</b> ${q.h}</div>
   <div class="opts">${ord.map((i,k)=>`<div class="opt" data-v="${i}"><span class="key">${"ABCDE"[k]}</span><div><div>${q.o[i][0]}</div><div class="why" hidden></div></div></div>`).join("")}</div></div>
@@ -181,28 +182,27 @@ function check(){
     w.innerHTML=`<b>${v===0?"✅ Stimmt:":"❌ Passt nicht:"}</b> ${q.o[v][1]}`;w.hidden=false});
   if(!L.seen.has(q.id)){L.seen.add(q.id);grade(q,ok,L.hint);if(!ok)L.firstWrong++;else if(L.hint)L.hinted++}
   if(ok){L.done++;L.queue.shift()}
-  else{L.mistakes++;if(L.mode!=="review"){if(S.hearts>=HMAX)S.heartTs=Date.now();S.hearts=Math.max(0,S.hearts-1)}L.queue.push(L.queue.shift())}
+  else{L.mistakes++;L.queue.push(L.queue.shift())}
   save();
   const f=$("#foot");f.className="foot "+(ok?"ok":"bad");
   f.innerHTML=`<div class="fi"><div class="msg"><h3>${ok?pick(["Richtig! ✅","Super! 🎉","Klasse! 💪","Genau! 🎯"]):"Leider falsch ❌ – die Frage kommt nochmal"}</h3>${q.n?`<p>📌 <b>Merke:</b> ${q.n}</p>`:""}<p style="color:#777">Begründungen zu allen Antworten stehen oben bei den Optionen.</p></div><button class="btn" onclick="next()">Weiter</button></div>`;
   $(".top .bar>div").style.width=(L.done/L.total*100)+"%";
-  const hh=$(".hh");if(hh&&L.mode!=="review")hh.textContent="❤️ "+S.hearts;
+  const hh=$(".hh");if(hh)hh.textContent=L.done+"/"+L.total;
   $(".opts").scrollIntoView({behavior:"smooth",block:"start"});
 }
-function next(){if(L.mode!=="review"&&S.hearts<=0)return end(false);if(!L.queue.length)return end(true);renderQ()}
+function next(){if(!L.queue.length)return end();renderQ()}
 function quit(){if(confirm("Lektion wirklich abbrechen?"))home()}
 
-function end(win){
-  const m=L.mode;let xp=0,heart=false;
-  const firstOk=L.total-L.firstWrong;
-  if(win){xp=(m==="review"?5:10)+(firstOk-L.hinted)*2+L.hinted+(L.firstWrong||L.hinted?0:5);addXp(xp);
-    if(m==="lesson"){const k=L.ci+"-"+L.li;S.done[k]=(S.done[k]||0)+1}
-    if(m==="review"&&S.hearts<HMAX){S.hearts++;heart=true}save()}
+function end(){
+  const m=L.mode,firstOk=L.total-L.firstWrong;
+  const xp=(m==="review"?5:10)+(firstOk-L.hinted)*2+L.hinted+(L.firstWrong||L.hinted?0:5);
+  addXp(xp);
+  if(m==="lesson"){const k=L.ci+"-"+L.li;S.done[k]=(S.done[k]||0)+1}
+  save();
   const acc=Math.round(firstOk/L.total*100);
-  app.innerHTML=`<div class="end"><div class="big">${win?(acc===100&&!L.hinted?"🏆":"🎉"):"💔"}</div><h1>${win?(m==="review"?"Wiederholung geschafft!":"Lektion geschafft!"):"Keine Herzen mehr"}</h1>
-  ${win?`<div class="statgrid"><div><b>+${xp}</b><small>XP</small></div><div><b>${acc} %</b><small>auf Anhieb richtig</small></div><div><b>💡 ${L.hinted}</b><small>mit Tipp</small></div></div>${heart?"<p>❤️ +1 Herz fürs Wiederholen</p>":""}`
-  :`<p>Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück.</p>`}
-  <div class="col"><button class="btn" onclick="home()">Weiter</button>${win?"":`<button class="btn sec" onclick="review()">🔁 Wiederholen</button>`}</div></div>`;
+  app.innerHTML=`<div class="end"><div class="big">${acc===100&&!L.hinted?"🏆":"🎉"}</div><h1>${m==="review"?"Wiederholung geschafft!":"Lektion geschafft!"}</h1>
+  <div class="statgrid"><div><b>+${xp}</b><small>XP</small></div><div><b>${acc} %</b><small>auf Anhieb richtig</small></div><div><b>💡 ${L.hinted}</b><small>mit Tipp</small></div></div>
+  <div class="col"><button class="btn" onclick="home()">Weiter</button><button class="btn sec" onclick="review()">🔁 Wiederholen</button></div></div>`;
   L=null;
 }
 
@@ -222,8 +222,8 @@ function resetAll(){if(confirm("Wirklich den gesamten Fortschritt löschen?")){t
 // ===== Klausurfälle =====
 function cases(){
   L=null;K=null;const c=C[tab],list=CASES.filter(f=>f.ci===tab);
-  app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};cases()">${x.icon} ${x.short}</button>`).join("")}</div>
-  <div class="banner" style="--c:${c.color}"><h2>📝 Klausurfälle</h2><div>Mehrstufige Fälle wie in der Klausur. Nach jedem Schritt siehst du die richtige Lösung und rechnest mit dem korrekten Zwischenergebnis weiter. Hier verlierst du keine Herzen.</div></div>
+  app.innerHTML=hud()+tabs("cases")+`
+  <div class="banner" style="--c:${c.color}"><h2>📝 Klausurfälle</h2><div>Mehrstufige Fälle wie in der Klausur. Nach jedem Schritt siehst du die richtige Lösung und rechnest mit dem korrekten Zwischenergebnis weiter.</div></div>
   ${list.length?list.map(f=>{const b=S.cases[f.id];return`<div class="casecard" style="--c:${c.color}" onclick="startCase('${f.id}')"><div class="ci">${f.icon}</div><div><b>${f.title}</b><small>${f.topic} · ${f.steps.length} Schritte${b!==undefined?` · Bestwert ${b}/${f.steps.length}`:""}</small></div><span class="arr">›</span></div>`}).join(""):"<p>Für dieses Kapitel gibt es noch keine Fälle.</p>"}`+nav("cases");
   window.scrollTo(0,0);
 }
