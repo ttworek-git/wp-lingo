@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
-<head><script>window.onerror=function(m,s,l){(document.body||document.documentElement).innerHTML='<p style="padding:20px;font:16px sans-serif;color:red">Fehler in Zeile '+l+': '+m+'</p>';};</script>
+<head>
 <meta charset="UTF-8">
+<script>var ERR=0;window.onerror=function(m,s,l){if(ERR++)return;var f=(s||"").split("/").pop().split("?")[0]||"index.html";document.documentElement.innerHTML='<body style="padding:20px;font:16px sans-serif;color:#c00"><b>Fehler in Datei '+f+', Zeile '+l+':</b><br>'+m+'<br><br>Bitte genau diese Datei neu einfügen.</body>';};</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#58cc02">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9,7 +10,7 @@
 <title>WP-Lingo</title>
 <style>
 :root{--g:#58cc02;--gd:#46a302;--r:#ff4b4b;--rd:#ea2b2b;--line:#e5e5e5;--txt:#3c3c3c}
-{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#fff;color:var(--txt)}
 #app{max-width:640px;margin:0 auto;padding:12px 16px 220px;min-height:100vh}
 .hud{display:flex;justify-content:space-between;font-weight:800;font-size:17px;padding:8px 4px 12px;position:sticky;top:0;background:#fff;z-index:5}
@@ -36,7 +37,7 @@ body{margin:0;background:#fff;color:var(--txt)}
 .btn.red{background:var(--r);box-shadow:0 4px 0 var(--rd)}
 .btn.white{background:#fff;color:var(--c);box-shadow:0 4px 0 rgba(0,0,0,.2);padding:9px 14px;font-size:14px}
 .nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid var(--line);display:flex;justify-content:center;z-index:10}
-.nav button{flex:1;max-width:213px;background:none;border:none;padding:10px 4px 14px;font-size:22px;cursor:pointer;color:#999;font-weight:700}
+.nav button{flex:1;max-width:160px;background:none;border:none;padding:10px 4px 14px;font-size:22px;cursor:pointer;color:#999;font-weight:700}
 .nav button small{display:block;font-size:12px;margin-top:2px}
 .nav button.on{color:#1cb0f6}
 .badge{background:var(--r);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;margin-left:4px}
@@ -74,1317 +75,6 @@ body{margin:0;background:#fff;color:var(--txt)}
 .srow .bar{height:10px}
 .set{display:flex;gap:10px;align-items:center;margin:10px 0;font-size:15px}
 .setbtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.setbtns .btn{font-size:13px;padding:10px 14px}
-@media(max-width:600px){.kbd{display:none}.fi .btn{width:100%}}
-</style>
-</head>
-<body>
-<div id="app"></div>
-<script>
-/* =====================================================================
-TEIL 1: GRUNDINHALTE + APP
-Aufbau einer Frage:
-{q:"Frage", h:"Tipp zur Herangehensweise",
-o:[["RICHTIGE Antwort","Begründung"],["Falsche Antwort","Warum falsch"], ...],
-n:"Merksatz / Norm"}
-WICHTIG: Die ERSTE Option ist immer die richtige – die App mischt automatisch.
-===================================================================== /
-const C = [
-{ title:"Angewandte BWL & VWL", short:"BWL / VWL", color:"#a560e8", icon:"📈", lessons:[
-{ title:"Kostenrechnung & Kalkulation", icon:"🧮", qs:[
-{q:"Zuschlagskalkulation: Materialeinzelkosten 200 €, MGK-Zuschlag 10 %, Fertigungslöhne 100 €, FGK-Zuschlag 150 %. Wie hoch sind die Herstellkosten?",
-h:"Baue das Schema stufenweise auf: Materialkosten = MEK + MGK, Fertigungskosten = FEK + FGK. Jeder Zuschlagssatz bezieht sich nur auf seine eigene Einzelkostenbasis.",
-o:[["470 €","MK = 200 + 20 = 220 €; FK = 100 + 150 = 250 €; HK = 470 €."],
-["450 €","Hier fehlen die Materialgemeinkosten (10 % von 200 € = 20 €)."],
-["320 €","Hier fehlen die Fertigungsgemeinkosten (150 % von 100 € = 150 €)."],
-["770 €","Der FGK-Zuschlag wurde fälschlich auf MEK + FEK (300 €) bezogen. Basis sind nur die Fertigungslöhne."]],
-n:"HK = MEK + MGK + FEK + FGK (+ SEKF). Selbstkosten = HK + VwGK + VtGK."},
-{q:"Welche der folgenden Positionen sind Zusatzkosten?",
-h:"Frag dich, ob es in der Finanzbuchhaltung überhaupt einen Aufwand dazu gibt. Zusatzkosten haben kein Aufwands-Gegenstück, Anderskosten einen Aufwand in anderer Höhe.",
-o:[["Kalkulatorischer Unternehmerlohn im Einzelunternehmen","Der Unternehmer erhält kein Gehalt, in der FiBu gibt es also keinen Aufwand. Die Kosten kommen nur in der KLR hinzu."],
-["Kalkulatorische Abschreibungen","Bilanzielle AfA gibt es auch, nur in anderer Höhe (z. B. auf Wiederbeschaffungswerte). Das sind Anderskosten."],
-["Spende an einen Sportverein","Betriebsfremd, also neutraler Aufwand und keine Kosten."],
-["Fertigungslöhne","Aufwand und Kosten sind gleich hoch. Das sind Grundkosten."]],
-n:"Kalkulatorische Kosten = Anderskosten (z. B. kalk. AfA, Wagnisse) + Zusatzkosten (z. B. Unternehmerlohn, EK-Zinsen, Miete für eigene Räume)."},
-{q:"Kalk. AfA 40.000 €, kalk. Zinsen 10.000 €, Energie 15.000 €, Raumkosten 5.000 €, Maschinenlaufzeit 1.750 h. Wie hoch ist der Maschinenstundensatz?",
-h:"Summiere alle maschinenabhängigen Gemeinkosten und teile sie durch die Laufzeit (nicht durch Kalender- oder Anwesenheitsstunden).",
-o:[["40,00 €/h","70.000 € / 1.750 h = 40 €/h."],
-["28,57 €/h","Nur AfA und Zinsen. Energie und Raumkosten hängen aber auch an der Maschine."],
-["37,14 €/h","Die Raumkosten (5.000 €) fehlen."],
-["22,86 €/h","Nur die Abschreibung wurde verrechnet."]],
-n:"Maschinenstundensatz = maschinenabhängige GK / Maschinenlaufstunden. Die Restgemeinkosten werden weiter über die Löhne verrechnet."},
-{q:"Für welche Fertigungsart eignet sich die Äquivalenzziffernkalkulation?",
-h:"Ordne jedem Kalkulationsverfahren die Produktionsstruktur zu: ein Produkt, ähnliche Produkte, verschiedene Produkte oder Kuppelprodukte.",
-o:[["Sortenfertigung artverwandter Produkte, deren Kosten in einem festen Verhältnis stehen","Die Äquivalenzziffern bilden genau dieses feste Kostenverhältnis ab (z. B. Biersorten, Bleche verschiedener Stärke)."],
-["Massenfertigung eines einzigen Produkts","Dafür reicht die einfache Divisionskalkulation."],
-["Einzelfertigung sehr unterschiedlicher Produkte","Dafür ist die Zuschlagskalkulation geeignet."],
-["Kuppelproduktion","Hier gibt es kein verursachungsgerechtes Verhältnis. Man nutzt die Restwert- oder die Verteilungsmethode."]],
-n:"Division → Äquivalenzziffern → Zuschlag → Kuppelkalkulation: von homogen bis heterogen."},
-{q:"Welches Verfahren der innerbetrieblichen Leistungsverrechnung erfasst gegenseitige Leistungsbeziehungen zwischen Hilfskostenstellen exakt?",
-h:"Prüfe, ob das Verfahren Leistungsströme in beide Richtungen zwischen Vorkostenstellen abbilden kann.",
-o:[["Gleichungsverfahren (simultanes Verfahren)","Das lineare Gleichungssystem berücksichtigt alle gegenseitigen Leistungsbeziehungen gleichzeitig."],
-["Anbauverfahren","Es ignoriert Leistungen zwischen Hilfskostenstellen vollständig und verrechnet nur an Hauptkostenstellen."],
-["Stufenleiterverfahren","Es verrechnet nur in eine Richtung, Rückflüsse an bereits abgerechnete Stellen fehlen."],
-["Kostenartenverfahren","Es verrechnet nur ausgewählte Kostenarten und ist daher ungenau."]],
-n:"Genauigkeit: Gleichungsverfahren > Stufenleiter > Anbauverfahren."},
-{q:"Was sind in der Prozesskostenrechnung leistungsmengenneutrale (lmn) Prozesse?",
-h:"Frag dich, ob die Kosten des Prozesses mit einem Kostentreiber (z. B. Anzahl der Bestellungen) schwanken.",
-o:[["Prozesse, deren Kosten unabhängig vom Leistungsvolumen anfallen, z. B. „Abteilung leiten“","Sie haben keinen Kostentreiber und werden meist proportional auf die lmi-Prozesse umgelegt."],
-["Prozesse, deren Kosten sich mit der Zahl der Kostentreiber ändern","Das sind leistungsmengeninduzierte (lmi) Prozesse."],
-["Prozesse, die nur Einzelkosten verursachen","Die Prozesskostenrechnung verrechnet gerade Gemeinkosten."],
-["Prozesse, die ausschließlich variable Kosten verursachen","lmn-Kosten sind typischerweise fix in Bezug auf die Prozessmenge."]],
-n:"Prozesskostensatz (lmi) = Prozesskosten / Prozessmenge; Umlagesatz lmn = lmn-Kosten / lmi-Kosten."}
-]},
-{ title:"Entscheidungsrechnung & Plankosten", icon:"⚖️", qs:[
-{q:"Fixkosten 240.000 €, Preis 80 €/Stück, variable Stückkosten 50 €. Wie hoch ist die Break-even-Menge?",
-h:"Teile die Fixkosten durch den Stückdeckungsbeitrag (Preis minus variable Stückkosten). Achte auf die Einheit, gefragt ist eine Menge.",
-o:[["8.000 Stück","240.000 / (80 − 50) = 8.000 Stück."],
-["3.000 Stück","Hier wurde durch den Preis statt durch den Deckungsbeitrag geteilt."],
-["4.800 Stück","Hier wurde durch die variablen Stückkosten statt durch den Deckungsbeitrag geteilt."],
-["640.000","Das ist der Break-even-Umsatz in € (8.000 · 80 €), keine Menge."]],
-n:"x_BE = K_f / (p − k_v); Umsatz_BE = K_f / DB-Quote."},
-{q:"Freie Kapazität: Ein Kunde bietet 35 €/Stück für einen Zusatzauftrag. Variable Stückkosten 30 €, Vollkosten 42 €. Wie entscheidest du kurzfristig?",
-h:"Welche Kosten ändern sich durch den Auftrag? Fixkosten fallen bei freier Kapazität ohnehin an.",
-o:[["Annehmen: Der Deckungsbeitrag von 5 €/Stück verbessert das Ergebnis","Bei freier Kapazität sind nur die variablen Kosten entscheidungsrelevant. Qualitativ zu prüfen: Rückwirkungen auf die Preise für Stammkunden."],
-["Ablehnen, weil der Preis unter den Vollkosten liegt","Die Fixkosten sind kurzfristig nicht abbaubar. Ablehnen würde auf 5 €/Stück Deckungsbeitrag verzichten."],
-["Annehmen nur, wenn der Preis Vollkosten plus Gewinnzuschlag deckt","Das ist eine langfristige Vollkostensicht und für die kurzfristige Entscheidung irrelevant."],
-["Gleichgültig, weil das Ergebnis unverändert bleibt","Das Ergebnis steigt um 5 € je Stück."]],
-n:"Kurzfristige Preisuntergrenze bei freier Kapazität = variable Stückkosten."},
-{q:"Engpass Maschinenzeit. A: DB 20 €, 4 min/Stück; B: DB 30 €, 10 min/Stück; C: DB 12 €, 2 min/Stück. Welche Produktionsreihenfolge ist optimal?",
-h:"Rechne für jedes Produkt den relativen Deckungsbeitrag: Deckungsbeitrag geteilt durch die Engpassminuten.",
-o:[["C → A → B","Relative DB: C = 6 €/min, A = 5 €/min, B = 3 €/min."],
-["B → A → C","Das ist die Reihenfolge nach absolutem DB. Sie gilt nur ohne Engpass."],
-["A → C → B","A hat mit 5 €/min einen niedrigeren relativen DB als C mit 6 €/min."],
-["C → B → A","B hat mit 3 €/min den niedrigsten relativen DB und gehört ans Ende."]],
-n:"Ein Engpass → relativer DB; mehrere Engpässe → lineare Optimierung."},
-{q:"Make or Buy bei freier Kapazität: Eigenfertigung variable Kosten 18 €/Stück, zugeschlüsselte Fixkosten 7 €/Stück. Fremdbezugspreis 22 €. Entscheidung kurzfristig?",
-h:"Vergleiche nur die Kosten, die durch die Entscheidung tatsächlich wegfallen oder entstehen.",
-o:[["Eigenfertigung, weil 18 € < 22 €","Die Fixkosten fallen kurzfristig in beiden Fällen an und sind daher irrelevant."],
-["Fremdbezug, weil 25 € Vollkosten > 22 €","Das stimmt nur, wenn die Fixkosten abbaubar sind (langfristige Betrachtung)."],
-["Indifferent","Es gibt einen Kostenvorteil von 4 €/Stück für die Eigenfertigung."],
-["Fremdbezug, weil Fixkosten immer zu berücksichtigen sind","Für kurzfristige Entscheidungen gilt: nur relevante Kosten zählen."]],
-n:"Relevante Kosten = entscheidungsabhängige Kosten; Sunk Costs und nicht abbaubare Fixkosten bleiben außer Ansatz."},
-{q:"Wie hoch ist die kurzfristige Preisuntergrenze, wenn ein Zusatzauftrag einen bestehenden Engpass beansprucht?",
-h:"Wird ein Engpass belegt, musst du ein anderes Produkt verdrängen. Was kostet dich das?",
-o:[["Variable Stückkosten + entgangener Deckungsbeitrag verdrängter Produkte (Opportunitätskosten)","Der Zusatzauftrag muss mindestens den verdrängten Deckungsbeitrag hereinholen."],
-["Nur die variablen Stückkosten","Das gilt nur bei freier Kapazität."],
-["Die vollen Selbstkosten","Das ist die langfristige Preisuntergrenze."],
-["Die Fixkosten je Stück","Fixkosten sind kurzfristig nicht relevant."]],
-n:"PUG (Engpass) = k_v + rel. DB des verdrängten Produkts × Engpassbeanspruchung."},
-{q:"Flexible Plankostenrechnung auf Vollkostenbasis: Planbeschäftigung 1.000 h, Plankosten 50.000 € (davon fix 20.000 €). Istbeschäftigung 800 h, Istkosten 46.000 €. Wie hoch ist die Verbrauchsabweichung?",
-h:"Ermittle zuerst die Sollkosten bei Istbeschäftigung: Fixkosten + variable Plankosten × (Ist-/Planbeschäftigung). Verbrauchsabweichung = Istkosten − Sollkosten.",
-o:[["2.000 € (ungünstig)","Sollkosten = 20.000 + 30.000 · 0,8 = 44.000 €; 46.000 − 44.000 = 2.000 €."],
-["4.000 €","Das ist die Beschäftigungsabweichung: Sollkosten 44.000 − verrechnete Plankosten 40.000 (50 €/h · 800 h)."],
-["6.000 €","Das ist die Gesamtabweichung (Istkosten − verrechnete Plankosten)."],
-["−4.000 €","Istkosten und Plankosten bei unterschiedlichen Beschäftigungen sind nicht vergleichbar."]],
-n:"Gesamtabw. = Verbrauchsabw. (Ist − Soll) + Beschäftigungsabw. (Soll − verrechnete Plankosten)."}
-]},
-{ title:"Investitionsrechnung", icon:"💹", qs:[
-{q:"Investition 10.000 € in t0, Rückflüsse je 6.000 € in t1 und t2, Kalkulationszins 10 %. Wie hoch ist der Kapitalwert?",
-h:"Zinse jeden Rückfluss mit (1 + i)^t auf t0 ab und ziehe die Anschaffungsauszahlung ab.",
-o:[["413,22 €","6.000/1,1 + 6.000/1,21 − 10.000 = 5.454,55 + 4.958,68 − 10.000 = 413,22 €."],
-["2.000 €","Ohne Abzinsung. Damit wird der Zeitwert des Geldes ignoriert."],
-["909,09 €","Der Rückfluss aus t2 wurde nur mit einer Periode abgezinst."],
-["10.413,22 €","Das ist der Barwert der Rückflüsse. Die Anschaffungsauszahlung wurde nicht abgezogen."]],
-n:"KW = −I₀ + Σ CFₜ · (1+i)^−t; KW > 0 → vorteilhaft."},
-{q:"Kapitalwert 10.000 €, Laufzeit 5 Jahre, Zins 10 %. Wie hoch ist die Annuität?",
-h:"Multipliziere den Kapitalwert mit dem Kapitalwiedergewinnungsfaktor i·q^n / (q^n − 1).",
-o:[["2.637,97 €","KWF = 0,1 · 1,61051 / 0,61051 = 0,263797 → 2.637,97 €."],
-["2.000,00 €","Einfache Division durch 5. Dabei fehlen die Zinsen."],
-["1.000,00 €","KW · i ist die Annuität einer ewigen Rente, nicht bei 5 Jahren."],
-["1.637,97 €","Das ist der Restwertverteilungsfaktor i/(q^n − 1). Er verteilt einen Endwert, keinen Barwert."]],
-n:"Annuität = KW · KWF; KWF = Kehrwert des Rentenbarwertfaktors."},
-{q:"Investition: −1.000 € in t0, +1.150 € in t1. Wie hoch ist der interne Zinsfuß?",
-h:"Suche den Zins, bei dem der Kapitalwert null ist: −1.000 + 1.150/(1+r) = 0.",
-o:[["15 %","1.150/1.000 − 1 = 0,15."],
-["13,04 %","150 / 1.150. Bezugsbasis ist aber die Anschaffungsauszahlung."],
-["1,15 %","Faktor und Prozentsatz verwechselt."],
-["10 %","Ein typischer Kalkulationszins, aber kein Ergebnis aus der Zahlungsreihe."]],
-n:"IZF: KW(r) = 0. Bei zwei Perioden einfach ablesbar, sonst Interpolation (Regula falsi)."},
-{q:"Zwei sich gegenseitig ausschließende Investitionen: A hat den höheren Kapitalwert, B den höheren internen Zinsfuß. Wie entscheidest du (vollkommener Kapitalmarkt)?",
-h:"Denk an die impliziten Wiederanlageprämissen der beiden Verfahren.",
-o:[["Für A: Der Kapitalwert ist maßgeblich","Die Kapitalwertmethode unterstellt die Wiederanlage zum Kalkulationszins. Das ist auf dem vollkommenen Kapitalmarkt konsistent."],
-["Für B: Eine höhere Rendite ist immer besser","Der IZF unterstellt die Wiederanlage zum IZF und ignoriert Volumen- und Laufzeitunterschiede."],
-["Beide Verfahren führen stets zum gleichen Ergebnis","Bei Alternativenvergleichen gibt es typischerweise Rangfolgekonflikte."],
-["Die kürzere Amortisationsdauer entscheidet","Ein statisches Risikomaß, kein Vorteilhaftigkeitskriterium."]],
-n:"Konflikt KW vs. IZF → Kapitalwert (bzw. Differenzinvestition) entscheidet."},
-{q:"Wie verhält sich die optimale Nutzungsdauer einer unendlichen identischen Investitionskette im Vergleich zur einmaligen Investition?",
-h:"Bei einer Kette verschiebt jede Verlängerung der Nutzungsdauer auch die Kapitalwerte aller Folgeinvestitionen nach hinten.",
-o:[["Sie ist kürzer (Ketteneffekt)","Längeres Nutzen schiebt die vorteilhaften Folgeobjekte hinaus. Deshalb lohnt der frühere Ersatz."],
-["Sie ist länger","Genau umgekehrt: Der Zinseffekt auf die Folgeinvestitionen spricht für einen früheren Ersatz."],
-["Sie ist immer gleich","Das gilt nur, wenn die Folgeinvestitionen einen Kapitalwert von null haben."],
-["Sie entspricht der technischen Nutzungsdauer","Ökonomisch zählt der zeitliche Grenzgewinn, nicht die technische Lebensdauer."]],
-n:"Einmalige Investition: nutzen, solange der zeitliche Grenzgewinn > 0. Kette: solange er > Annuität der Folgekette."},
-{q:"Was ist ein zentraler Kritikpunkt an statischen Investitionsrechenverfahren?",
-h:"Was unterscheidet statische von dynamischen Verfahren grundsätzlich?",
-o:[["Der zeitliche Anfall der Zahlungen wird nicht berücksichtigt","Statische Verfahren rechnen mit Durchschnittswerten einer Periode, ohne Zinseszins."],
-["Sie setzen einen vollkommenen Kapitalmarkt voraus","Diese Prämisse ist typisch für dynamische Verfahren (z. B. Kapitalwert)."],
-["Sie sind aufwendiger als dynamische Verfahren","Sie sind gerade einfacher, deshalb werden sie in der Praxis genutzt."],
-["Sie lassen sich nicht zum Alternativenvergleich verwenden","Kosten- und Gewinnvergleich sind gerade für Alternativenvergleiche gedacht."]],
-n:"Statisch: Kosten-, Gewinn-, Rentabilitätsvergleich, Amortisation. Dynamisch: KW, Annuität, IZF, VOFI."}
-]},
-{ title:"Finanzierung", icon:"🏦", qs:[
-{q:"Gesamtkapitalrendite 10 %, Fremdkapitalzins 6 %, Verschuldungsgrad FK/EK = 2. Wie hoch ist die Eigenkapitalrendite?",
-h:"Leverage-Formel: r_EK = r_GK + (r_GK − r_FK) · FK/EK.",
-o:[["18 %","10 % + (10 % − 6 %) · 2 = 18 %."],
-["14 %","Hier wurde mit einem Verschuldungsgrad von 1 statt 2 gerechnet."],
-["22 %","Mit dem FK-Zins statt mit der Zinsdifferenz multipliziert."],
-["4 %","Das ist nur der Spread zwischen r_GK und r_FK."]],
-n:"Leverage-Chance bei r_GK > r_FK, Leverage-Risiko bei r_GK < r_FK."},
-{q:"EK-Quote 40 % (r_EK 12 %), FK-Quote 60 % (r_FK 5 %), Steuersatz 30 %. Wie hoch ist der WACC (nach Steuern)?",
-h:"Gewichte die Kapitalkosten mit den Marktwertanteilen. Nur die FK-Zinsen werden um den Steuervorteil (1 − s) gekürzt.",
-o:[["6,9 %","0,4 · 12 % + 0,6 · 5 % · 0,7 = 4,8 % + 2,1 % = 6,9 %."],
-["7,8 %","Das Tax Shield auf die FK-Zinsen fehlt."],
-["8,6 %","EK- und FK-Gewichte vertauscht."],
-["5,46 %","Hier wurden auch die EK-Kosten um die Steuer gekürzt."]],
-n:"WACC = EK/GK · r_EK + FK/GK · r_FK · (1 − s)."},
-{q:"Modigliani/Miller mit Unternehmensteuern, dauerhaft konstantes Fremdkapital: Wie hoch ist der Wert des verschuldeten Unternehmens?",
-h:"Fremdkapitalzinsen sind steuerlich abzugsfähig. Wie hoch ist der Barwert dieser Steuerersparnis bei ewigem FK?",
-o:[["V_L = V_U + s · FK","Barwert des Tax Shields = s · r_FK · FK / r_FK = s · FK."],
-["V_L = V_U","Das ist These I ohne Steuern."],
-["V_L = V_U − s · FK","Das Vorzeichen ist falsch, der Steuervorteil erhöht den Wert."],
-["V_L = V_U · (1 − s)","Das ist keine Formel aus dem MM-Modell."]],
-n:"Mit Steuern wäre nach MM 100 % FK optimal. Begrenzt wird das in der Realität durch Insolvenz- und Agency-Kosten (Trade-off-Theorie)."},
-{q:"Kapitalerhöhung: Börsenkurs alt 60 €, Emissionskurs 40 €, Bezugsverhältnis 4 : 1. Wie hoch ist der rechnerische Wert des Bezugsrechts?",
-h:"B = (K_alt − K_neu) / (Bezugsverhältnis + 1). Alternativ: Mischkurs bilden und von K_alt abziehen.",
-o:[["4 €","(60 − 40) / (4 + 1) = 4 €; Mischkurs 56 €."],
-["5 €","Hier fehlt das „+ 1“ im Nenner."],
-["20 €","Das ist die Kursdifferenz, verteilt wird sie aber auf alte und neue Aktien."],
-["56 €","Das ist der Mischkurs nach der Kapitalerhöhung, nicht das Bezugsrecht."]],
-n:"Mischkurs = (a · K_alt + n · K_neu)/(a + n); B = K_alt − Mischkurs."},
-{q:"Was kennzeichnet echtes Factoring?",
-h:"Unterscheide zwei Fragen: Wer trägt das Ausfallrisiko (echt/unecht), und wird der Schuldner informiert (offen/still)?",
-o:[["Der Factor übernimmt das Delkredererisiko (Ausfallrisiko)","Das ist das Merkmal des echten Factorings. Die Forderung geht beim Verkäufer bilanziell ab."],
-["Das Ausfallrisiko bleibt beim Verkäufer","Das ist unechtes Factoring."],
-["Der Schuldner wird über die Abtretung nicht informiert","Das beschreibt stilles Factoring, unabhängig von echt oder unecht."],
-["Factoring ist eine Form der Beteiligungsfinanzierung","Es ist eine Finanzierung durch Vermögensumschichtung (Forderungsverkauf), keine EK-Zuführung."]],
-n:"Factoring-Funktionen: Finanzierung, Delkredere, Dienstleistung (Debitorenmanagement)."},
-{q:"Wie ist der Anlagendeckungsgrad II definiert?",
-h:"Die goldene Bilanzregel verlangt die fristenkongruente Finanzierung des Anlagevermögens. Welche Kapitalarten sind langfristig?",
-o:[["(Eigenkapital + langfristiges Fremdkapital) / Anlagevermögen","Er sollte ≥ 100 % sein (goldene Bilanzregel im weiteren Sinne)."],
-["Eigenkapital / Anlagevermögen","Das ist der Anlagendeckungsgrad I."],
-["Umlaufvermögen / kurzfristige Verbindlichkeiten","Das ist die Liquidität 3. Grades (Current Ratio)."],
-["(EK + langfristiges FK) / (AV + langfristig gebundenes UV)","Das ist der Anlagendeckungsgrad III."]],
-n:"Horizontale Bilanzkennzahlen: Deckungsgrade; vertikale: EK-Quote, Anlagenintensität."}
-]},
-{ title:"Controlling & Unternehmensführung", icon:"🧭", qs:[
-{q:"Gewinn 60, Umsatz 1.200, Gesamtkapital 600. Wie hoch ist der ROI nach DuPont?",
-h:"ROI = Umsatzrendite (Gewinn/Umsatz) × Kapitalumschlag (Umsatz/Kapital).",
-o:[["10 %","5 % × 2 = 10 % (= 60/600)."],
-["5 %","Das ist nur die Umsatzrendite."],
-["2,5 %","Hier wurde durch den Kapitalumschlag geteilt statt mit ihm multipliziert."],
-["200 %","Der Kapitalumschlag (2) wurde als Prozentwert gelesen."]],
-n:"DuPont: Zerlegung des ROI in Rentabilitäts- und Umschlagskomponente."},
-{q:"NOPAT 12 Mio. €, investiertes Kapital 100 Mio. €, WACC 8 %. Wie hoch ist der EVA?",
-h:"EVA = operativer Gewinn nach Steuern − Kapitalkosten auf das investierte Kapital.",
-o:[["4 Mio. €","12 − 8 % · 100 = 4 Mio. €. Das Unternehmen verdient mehr als seine Kapitalkosten."],
-["12 Mio. €","Das ist der NOPAT. Die Kapitalkosten wurden nicht abgezogen."],
-["8 Mio. €","Das sind nur die Kapitalkosten."],
-["20 Mio. €","Die Kapitalkosten wurden addiert statt abgezogen."]],
-n:"EVA = NOPAT − WACC · Capital = (ROIC − WACC) · Capital. Barwert der EVAs = MVA."},
-{q:"DIO (Lagerdauer) 40 Tage, DSO (Debitorenlaufzeit) 50 Tage, DPO (Kreditorenlaufzeit) 30 Tage. Wie lang ist der Cash Conversion Cycle?",
-h:"Wie lange ist Geld gebunden? Lager- und Forderungsdauer verlängern die Bindung, Lieferantenziele verkürzen sie.",
-o:[["60 Tage","40 + 50 − 30 = 60 Tage."],
-["120 Tage","Die DPO wurde addiert statt abgezogen."],
-["20 Tage","Die Lagerdauer fehlt."],
-["40 Tage","Das ist nur die Lagerdauer."]],
-n:"CCC = DIO + DSO − DPO. Kürzerer CCC → geringerer Working-Capital-Bedarf."},
-{q:"Ein Manager (Agent) handelt nach Vertragsschluss für den Eigentümer unbeobachtbar im Eigeninteresse. Welches Agency-Problem liegt vor?",
-h:"Ordne zeitlich ein: vor oder nach Vertragsschluss? Geht es um Eigenschaften, Handlungen oder Absichten?",
-o:[["Moral Hazard (Hidden Action)","Die Handlung ist nach Vertragsschluss nicht beobachtbar. Lösung: Anreizsysteme, Monitoring."],
-["Adverse Selection (Hidden Characteristics)","Das betrifft verborgene Eigenschaften vor Vertragsschluss. Lösung: Signaling, Screening."],
-["Hold-up (Hidden Intention)","Hier wird die Abhängigkeit nach spezifischen Investitionen ausgenutzt."],
-["Trittbrettfahrerproblem","Ein Problem bei öffentlichen Gütern, kein Principal-Agent-Problem."]],
-n:"Agency-Kosten = Überwachungs- + Bindungskosten + Residualverlust (Jensen/Meckling)."},
-{q:"BCG-Matrix: Ein Produkt hat hohes Marktwachstum, aber einen geringen relativen Marktanteil. Welche Normstrategie gilt?",
-h:"Erst Feld bestimmen (Star, Cash Cow, Question Mark, Poor Dog), dann die Normstrategie zuordnen.",
-o:[["Selektiv: offensiv investieren oder zurückziehen","Ein Question Mark verbraucht viel Liquidität. Entweder zum Star ausbauen oder aufgeben."],
-["Abschöpfen","Das ist die Strategie für Cash Cows (hoher Anteil, geringes Wachstum)."],
-["Immer desinvestieren","Das ist die Normstrategie für Poor Dogs."],
-["Marktanteil halten und weiter investieren","Das ist die Strategie für Stars (hoher Anteil, hohes Wachstum)."]],
-n:"Cash Cows finanzieren Question Marks und Stars (Portfoliogleichgewicht)."},
-{q:"Wie sind die Perspektiven der Balanced Scorecard miteinander verknüpft?",
-h:"Kaplan/Norton wollten Strategie in messbare Ziele übersetzen. Wie wirken Lernen, Prozesse, Kunden und Finanzen aufeinander?",
-o:[["Über Ursache-Wirkungs-Ketten, die letztlich auf die Finanzperspektive zielen","Lernen und Entwicklung → Prozesse → Kunden → Finanzen."],
-["Gar nicht, sie stehen unabhängig nebeneinander","Gerade die Verknüpfung (Strategy Map) ist Kern der BSC."],
-["Nur über Budgets","Die BSC ergänzt die Finanzsteuerung um nicht-finanzielle Kennzahlen."],
-["Hierarchisch, mit der Kundenperspektive an der Spitze","Bei erwerbswirtschaftlichen Unternehmen steht die Finanzperspektive am Ende der Kette."]],
-n:"BSC: Ziele, Kennzahlen, Vorgaben, Maßnahmen je Perspektive; Früh- und Spätindikatoren."}
-]},
-{ title:"Mikroökonomie", icon:"🛒", qs:[
-{q:"Der Preis steigt um 5 %, die nachgefragte Menge sinkt um 10 %. Wie reagiert die Nachfrage und was passiert mit dem Umsatz?",
-h:"Preiselastizität = %-Mengenänderung / %-Preisänderung. Ist der Betrag größer als 1, überwiegt der Mengeneffekt.",
-o:[["Elastisch (|ε| = 2), der Umsatz sinkt","1,05 · 0,90 = 0,945, also etwa 5,5 % weniger Umsatz."],
-["Unelastisch, der Umsatz steigt","Das gilt nur für |ε| < 1."],
-["Einheitselastisch, der Umsatz bleibt konstant","Das gilt nur für |ε| = 1."],
-["Vollkommen elastisch","Dann bräche die Nachfrage bei jeder Preiserhöhung vollständig ein."]],
-n:"|ε| > 1: Preissenkung erhöht den Umsatz; |ε| < 1: Preiserhöhung erhöht den Umsatz."},
-{q:"Monopol: Nachfrage p = 100 − x, konstante Grenzkosten 20. Welche Menge und welcher Preis maximieren den Gewinn?",
-h:"Grenzerlös bilden (bei linearer Nachfrage doppelte Steigung): GE = 100 − 2x. Mit den Grenzkosten gleichsetzen, dann den Preis an der Nachfragekurve ablesen.",
-o:[["x = 40, p = 60","100 − 2x = 20 → x = 40; p = 100 − 40 = 60 (Cournot-Punkt)."],
-["x = 80, p = 20","Das ist die Lösung bei vollständiger Konkurrenz (Preis = Grenzkosten)."],
-["x = 50, p = 50","Das ist das Umsatzmaximum (GE = 0), nicht das Gewinnmaximum."],
-["x = 40, p = 20","Die Menge stimmt, aber der Preis wird an der Nachfragekurve abgelesen, nicht an den Grenzkosten."]],
-n:"Monopol: GE = GK; Wohlfahrtsverlust (Harberger-Dreieck) ggü. Konkurrenz."},
-{q:"Was gilt im langfristigen Gleichgewicht bei vollständiger Konkurrenz?",
-h:"Gewinne locken neue Anbieter an, bis kein Anreiz zum Marktzutritt mehr besteht.",
-o:[["Preis = Grenzkosten = Minimum der Durchschnittskosten; ökonomischer Gewinn null","Durch freien Marktzutritt werden die Gewinne wegkonkurriert (Betriebsoptimum)."],
-["Preis über den Durchschnittskosten, positiver Gewinn","Das ist kurzfristig möglich, langfristig nicht stabil."],
-["Preis = Minimum der durchschnittlichen variablen Kosten","Das ist das Betriebsminimum, also die kurzfristige Preisuntergrenze."],
-["Grenzerlös über den Grenzkosten","Bei Preisnehmern gilt GE = p = GK."]],
-n:"Betriebsminimum (min. AVC) = kurzfristige PUG; Betriebsoptimum (min. AC) = langfristige PUG."},
-{q:"Die Kreuzpreiselastizität zwischen Gut A und Gut B ist positiv. Was folgt daraus?",
-h:"Steigt der Preis von B: Wird A dann mehr oder weniger nachgefragt?",
-o:[["A und B sind Substitute","Steigt der Preis von B, weichen Konsumenten auf A aus (z. B. Butter und Margarine)."],
-["A und B sind Komplemente","Bei Komplementen ist die Kreuzpreiselastizität negativ (z. B. Drucker und Patronen)."],
-["A und B sind unabhängig","Dann ist sie null."],
-["A ist ein inferiores Gut","Das bestimmt die Einkommenselastizität (< 0), nicht die Kreuzpreiselastizität."]],
-n:"Kreuzpreiselastizität > 0 → Substitute, < 0 → Komplemente."},
-{q:"Ein Unternehmen verursacht negative externe Effekte (Umweltschäden). Was gilt ohne staatlichen Eingriff, und was ist die klassische Lösung?",
-h:"Vergleiche private und soziale Grenzkosten. Wer trägt den Schaden nicht?",
-o:[["Die Produktion ist zu hoch; eine Pigou-Steuer in Höhe des Grenzschadens im Optimum internalisiert den Effekt","Die privaten Grenzkosten liegen unter den sozialen. Die Steuer bringt beide in Übereinstimmung."],
-["Die Produktion ist zu niedrig; eine Subvention ist nötig","Das gilt für positive externe Effekte."],
-["Der Markt erreicht stets das Optimum","Externe Effekte sind ein klassisches Marktversagen."],
-["Nach Coase lassen sich Externalitäten nur bei hohen Transaktionskosten privat lösen","Umgekehrt: Coase setzt geringe Transaktionskosten und klare Eigentumsrechte voraus."]],
-n:"Instrumente: Pigou-Steuer, Zertifikate (Emissionshandel), Auflagen, Verhandlungen (Coase)."},
-{q:"Gefangenendilemma: Was gilt für das Nash-Gleichgewicht?",
-h:"Prüfe für jeden Spieler die beste Antwort auf jede Strategie des anderen. Gibt es eine dominante Strategie?",
-o:[["Beide gestehen bzw. defektieren; das Ergebnis ist nicht pareto-effizient","Defektieren ist dominant. Beide stünden mit Kooperation besser."],
-["Beide kooperieren, weil das gemeinsam besser ist","Kooperation ist kein Gleichgewicht, jeder hat einen Anreiz abzuweichen."],
-["Es gibt kein Nash-Gleichgewicht","Es gibt genau eines in dominanten Strategien."],
-["Das Nash-Gleichgewicht ist immer pareto-optimal","Gerade das Gefangenendilemma zeigt das Gegenteil."]],
-n:"Wiederholte Spiele (Tit for Tat) können Kooperation stabilisieren → Kartellstabilität."}
-]},
-{ title:"Makroökonomie & Finanzwissenschaft", icon:"🏛️", qs:[
-{q:"Marginale Konsumquote 0,75. Der Staat erhöht kreditfinanziert die Ausgaben um 10 Mrd. €. Um wie viel steigt das Einkommen (einfaches Keynes-Modell)?",
-h:"Multiplikator = 1 / (1 − c). Dann mit der Ausgabenänderung multiplizieren.",
-o:[["40 Mrd. €","1/(1 − 0,75) = 4 → 4 · 10 = 40 Mrd. €."],
-["13,33 Mrd. €","Hier wurde durch c statt durch (1 − c) geteilt."],
-["7,5 Mrd. €","Nur die erste Konsumrunde."],
-["10 Mrd. €","Ein Multiplikator von 1 gilt beim steuerfinanzierten Budget (Haavelmo)."]],
-n:"Staatsausgabenmultiplikator 1/(1 − c); Steuermultiplikator −c/(1 − c)."},
-{q:"Der Staat erhöht die Ausgaben um 10 Mrd. € und finanziert dies vollständig durch Pauschalsteuern. Wie verändert sich das Einkommen?",
-h:"Addiere Ausgaben- und Steuermultiplikator: 1/(1 − c) − c/(1 − c).",
-o:[["Es steigt um 10 Mrd. € (Haavelmo-Theorem, Multiplikator 1)","(1 − c)/(1 − c) = 1."],
-["Es bleibt unverändert","Die Steuer wirkt nur über den Konsum (c < 1) und dämpft deshalb schwächer."],
-["Es steigt um 40 Mrd. €","Das gilt nur bei Kreditfinanzierung."],
-["Es sinkt","Der Ausgabeneffekt überwiegt den Steuereffekt."]],
-n:"Haavelmo: Multiplikator des ausgeglichenen Budgets = 1."},
-{q:"Quantitätstheorie: Die Geldmenge wächst um 5 %, das reale BIP um 2 %, die Umlaufgeschwindigkeit ist konstant. Wie hoch ist die Inflation ungefähr?",
-h:"M · V = P · Y in Wachstumsraten: m + v = π + y.",
-o:[["3 %","5 % + 0 % − 2 % ≈ 3 %."],
-["7 %","Hier wurde das reale Wachstum addiert statt abgezogen."],
-["5 %","Das reale Wachstum fehlt."],
-["2 %","Das ist das reale Wachstum, nicht die Inflation."]],
-n:"Monetaristische Regel: Geldmenge ≈ Potenzialwachstum + Zielinflation."},
-{q:"Warum ist expansive Geldpolitik in der Liquiditätsfalle (IS-LM) wirkungslos?",
-h:"Wie reagiert der Zins auf eine Geldmengenerhöhung, wenn die LM-Kurve waagerecht verläuft?",
-o:[["Die zusätzliche Geldmenge wird vollständig gehortet, der Zins sinkt nicht weiter","Die Spekulationskasse ist unendlich zinselastisch, deshalb gibt es keinen Investitionsimpuls."],
-["Weil die Investitionen vollkommen zinselastisch sind","Dann wäre die Geldpolitik besonders wirksam (Investitionsfalle ist das Gegenteil)."],
-["Weil die Fiskalpolitik dort Crowding-out auslöst","In der Liquiditätsfalle gibt es gerade kein zinsinduziertes Crowding-out."],
-["Weil die Preise vollkommen flexibel sind","Das ist ein klassisches Argument, nicht die Begründung der Liquiditätsfalle."]],
-n:"Liquiditätsfalle: Fiskalpolitik voll wirksam; Geldpolitik wirkungslos."},
-{q:"Das Angebot eines Gutes ist sehr unelastisch, die Nachfrage elastisch. Wer trägt die Last einer Mengensteuer überwiegend?",
-h:"Die ökonomische Inzidenz hängt nicht davon ab, wer die Steuer abführt. Wer kann schlechter ausweichen?",
-o:[["Die Anbieter","Die unelastischere Marktseite kann nicht ausweichen und trägt die größere Last."],
-["Die Nachfrager","Sie können ausweichen, weil ihre Nachfrage elastisch ist."],
-["Immer derjenige, der die Steuer an das Finanzamt abführt","Die formale Inzidenz ist für die Lastverteilung irrelevant."],
-["Beide immer je zur Hälfte","Das gilt nur bei betragsmäßig gleichen Elastizitäten."]],
-n:"Zusatzlast (Excess Burden) steigt etwa mit dem Quadrat des Steuersatzes."},
-{q:"Was gilt bei einem direkt progressiven Einkommensteuertarif?",
-h:"Der Grenzsteuersatz gilt für den letzten Euro, der Durchschnittssteuersatz für das gesamte Einkommen. Was passiert mit dem Durchschnitt, wenn der Grenzwert darüber liegt?",
-o:[["Der Grenzsteuersatz liegt über dem Durchschnittssteuersatz; beide steigen mit dem Einkommen","Jeder zusätzliche Euro wird höher belastet und zieht den Durchschnitt nach oben."],
-["Der Durchschnittssteuersatz liegt über dem Grenzsteuersatz","Das wäre ein regressiver Verlauf."],
-["Beide sind gleich hoch","Das gilt nur bei einem proportionalen Tarif ohne Freibetrag."],
-["Der Grenzsteuersatz sinkt mit steigendem Einkommen","Das widerspricht der Progression."]],
-n:"Leistungsfähigkeitsprinzip: horizontal = gleiche Leistungsfähigkeit, gleiche Steuer; vertikal = höhere Leistungsfähigkeit, höhere Steuer."}
-]}
-]},
-{ title:"Steuerrecht", short:"Steuerrecht", color:"#1cb0f6", icon:"💶", lessons:[
-{ title:"Abgabenordnung & FGO", icon:"📨", qs:[
-{q:"Ein Steuerbescheid wird am Montag, 2.11.2026, zur Post gegeben. Wann endet die Einspruchsfrist?",
-h:"1) Bekanntgabefiktion nach § 122 Abs. 2 Nr. 1 AO (seit 2025: 4 Tage). 2) Einen Monat addieren. 3) Fällt das Ende auf ein Wochenende oder einen Feiertag, gilt § 108 Abs. 3 AO.",
-o:[["Montag, 7.12.2026","Bekanntgabe Fr 6.11.; Fristende So 6.12. → nächster Werktag Mo 7.12. (§ 108 Abs. 3 AO)."],
-["Sonntag, 6.12.2026","Das Wochenende wurde nicht berücksichtigt."],
-["Mittwoch, 2.12.2026","Die Bekanntgabefiktion fehlt, gerechnet wurde ab Aufgabe zur Post."],
-["Freitag, 4.12.2026","Ein Monat ist nicht gleich vier Wochen (§ 108 Abs. 1 AO i.V.m. § 188 Abs. 2 BGB)."]],
-n:"§ 355 Abs. 1 AO: Einspruchsfrist 1 Monat ab Bekanntgabe; Viertagesfiktion seit 1.1.2025."},
-{q:"ESt 2021: Die Erklärung (Pflichtveranlagung) wurde am 15.6.2023 eingereicht. Wann endet die reguläre Festsetzungsfrist?",
-h:"Regelfrist 4 Jahre (§ 169 AO). Beginn mit Ablauf des Jahres der Entstehung, aber Anlaufhemmung bei Erklärungspflicht (§ 170 Abs. 2 Nr. 1 AO): Beginn mit Ablauf des Jahres der Einreichung, max. 3 Jahre.",
-o:[["31.12.2027","Fristbeginn mit Ablauf 2023 (Einreichungsjahr) + 4 Jahre."],
-["31.12.2025","Ohne Anlaufhemmung gerechnet. Bei Erklärungspflicht greift § 170 Abs. 2 AO."],
-["15.6.2027","Die Frist läuft nicht tagesgenau ab Einreichung, sondern zum Jahresende."],
-["31.12.2028","Die maximale Anlaufhemmung (Ablauf 2024) gilt nur, wenn keine Erklärung eingereicht wird."]],
-n:"Festsetzungsfrist: 4 J (regulär), 5 J (leichtfertige Verkürzung), 10 J (Hinterziehung)."},
-{q:"Nach Eintritt der Bestandskraft erfährt das Finanzamt von bisher unbekannten Mieteinnahmen. Ist eine Änderung zuungunsten des Steuerpflichtigen möglich?",
-h:"Prüfe § 173 Abs. 1 AO: Unterscheide Nr. 1 (höhere Steuer) und Nr. 2 (niedrigere Steuer). Wo spielt das Verschulden eine Rolle?",
-o:[["Ja, nach § 173 Abs. 1 Nr. 1 AO – unabhängig vom Verschulden des Steuerpflichtigen","Neue Tatsachen, die zu einer höheren Steuer führen, erlauben eine Änderung (Grenzen: Treu und Glauben bei Ermittlungsfehlern des FA, Änderungssperre nach Außenprüfung)."],
-["Nur, wenn den Steuerpflichtigen kein grobes Verschulden trifft","Das ist die Voraussetzung für Änderungen zugunsten des Steuerpflichtigen (Nr. 2)."],
-["Nein, bestandskräftige Bescheide sind unabänderlich","Bestandskraft schließt nur den Einspruch aus. Die Korrekturvorschriften gelten weiter."],
-["Nur bei einem Vorbehalt der Nachprüfung","§ 164 AO ist eine eigene, zusätzliche Änderungsnorm."]],
-n:"Bei jeder Korrektur zusätzlich prüfen: Festsetzungsfrist noch offen?"},
-{q:"ESt-Nachzahlung 10.080 €, fällig am 10.3.2026, Zahlung per Überweisung am 20.4.2026. Wie hoch sind die Säumniszuschläge?",
-h:"§ 240 AO: 1 % für jeden angefangenen Monat; die Steuer wird auf den nächsten durch 50 € teilbaren Betrag abgerundet. Zähle die angefangenen Monate ab Fälligkeit.",
-o:[["201,00 €","Abgerundet 10.050 € × 1 % = 100,50 € × 2 angefangene Monate."],
-["201,60 €","Die Abrundung auf volle 50 € fehlt."],
-["100,50 €","Ab 11.4. hat bereits der zweite Säumnismonat begonnen."],
-["0 €","Die Schonfrist von 3 Tagen (§ 240 Abs. 3 AO) ist längst abgelaufen."]],
-n:"Säumniszuschlag ≠ Verspätungszuschlag (§ 152 AO, Erklärung) ≠ Zinsen (§ 233a AO)."},
-{q:"Mit welchem Zinssatz werden Steuernachforderungen nach § 233a AO verzinst?",
-h:"Denk an den BVerfG-Beschluss von 2021 und die Neuregelung von 2022 für Zeiträume ab 2019.",
-o:[["0,15 % pro vollem Monat (1,8 % p.a.)","§ 238 Abs. 1a AO, rückwirkend für Verzinsungszeiträume ab 1.1.2019. Der Zinslauf beginnt 15 Monate nach Ablauf des Entstehungsjahres."],
-["0,5 % pro Monat","Der alte Satz ist für Zeiträume ab 2019 verfassungswidrig."],
-["1 % pro angefangenem Monat","Das ist der Säumniszuschlag nach § 240 AO."],
-["0,25 % der festgesetzten Steuer pro Monat","Das ist der Verspätungszuschlag (§ 152 Abs. 5 AO, mindestens 25 €/Monat)."]],
-n:"Vollverzinsung ist symmetrisch: Nachzahlungs- und Erstattungszinsen."},
-{q:"Ein Steuerpflichtiger hat pro Tat 30.000 € ESt hinterzogen und erstattet eine vollständige Selbstanzeige. Was gilt?",
-h:"Prüfe die Sperrgründe des § 371 Abs. 2 AO. Gibt es eine betragsmäßige Grenze?",
-o:[["Keine Straffreiheit nach § 371 AO, aber Absehen von Verfolgung nach § 398a AO gegen Nachzahlung und 10 % Zuschlag","Über 25.000 € je Tat liegt ein Sperrgrund vor. § 398a: 10 % (bis 100.000 €), 15 % (bis 1 Mio. €), 20 % (darüber)."],
-["Straffreiheit nach § 371 AO tritt ohne Weiteres ein","Die 25.000 €-Grenze ist überschritten."],
-["Die Selbstanzeige ist bei Beträgen über 25.000 € vollkommen wirkungslos","§ 398a AO eröffnet weiterhin einen Weg."],
-["Eine Selbstanzeige ist nur nach Bekanntgabe einer Prüfungsanordnung möglich","Die Bekanntgabe einer Prüfungsanordnung ist gerade ein Sperrgrund."]],
-n:"Wirksame Selbstanzeige: vollständig für alle Steuerstraftaten einer Steuerart der letzten 10 Kalenderjahre."}
-]},
-{ title:"Einkommensteuer: Einkünfte", icon:"👤", qs:[
-{q:"Wie hoch ist der Grundfreibetrag im Veranlagungszeitraum 2026 (Einzelveranlagung)?",
-h:"Der Grundfreibetrag wird jährlich zur Abmilderung der kalten Progression angehoben. Achte auf das richtige Jahr.",
-o:[["12.348 €","§ 32a Abs. 1 EStG für VZ 2026 (+252 € ggü. 2025)."],
-["12.096 €","Das ist der Wert für 2025."],
-["11.784 €","Das ist der Wert für 2024."],
-["10.908 €","Das ist der Wert für 2023."]],
-n:"Zusammenveranlagung: Splittingverfahren → doppelter Grundfreibetrag."},
-{q:"Arbeitnehmer, einfache Entfernung Wohnung – erste Tätigkeitsstätte 30 km, 220 Arbeitstage (2026). Wie hoch ist die Entfernungspauschale?",
-h:"Seit 2026 gilt ein einheitlicher Satz ab dem ersten Kilometer. Es zählt nur die einfache Entfernung.",
-o:[["2.508 €","30 km × 0,38 € × 220 Tage (§ 9 Abs. 1 S. 3 Nr. 4 EStG i.d.F. ab 2026)."],
-["2.156 €","Das ist die Rechnung nach altem Recht (bis 2025): 20 km × 0,30 € + 10 km × 0,38 €."],
-["1.980 €","Durchgehend 0,30 € ist veraltet."],
-["5.016 €","Gerechnet wurde mit Hin- und Rückweg. Maßgeblich ist aber die einfache Entfernung."]],
-n:"Höchstbetrag 4.500 € gilt nicht bei Nutzung eines eigenen oder überlassenen Pkw."},
-{q:"Ein Arbeitnehmer hat Werbungskosten von 900 € (ohne Gewerkschaftsbeiträge). Was wird bei den Einkünften aus nichtselbständiger Arbeit abgezogen?",
-h:"Vergleiche die tatsächlichen Werbungskosten mit dem Pauschbetrag nach § 9a EStG. Werden beide addiert?",
-o:[["1.230 € (Arbeitnehmer-Pauschbetrag)","Der Pauschbetrag ist höher und wird statt der tatsächlichen Werbungskosten abgezogen. Ab 2026 kommen Gewerkschaftsbeiträge zusätzlich dazu."],
-["900 €","Die tatsächlichen Werbungskosten werden nur angesetzt, wenn sie den Pauschbetrag übersteigen."],
-["2.130 €","Pauschbetrag und tatsächliche Kosten werden nicht addiert."],
-["1.000 €","Das ist der Sparer-Pauschbetrag bei Kapitaleinkünften."]],
-n:"§ 9a S. 1 Nr. 1a EStG: 1.230 € (seit 2023)."},
-{q:"Ein vermietetes Mehrfamilienhaus (Privatvermögen) wurde 2018 gekauft und 2026 mit 50.000 € Gewinn verkauft. Wie ist der Gewinn zu behandeln?",
-h:"§ 23 EStG: Welche Spekulationsfrist gilt für Grundstücke, und handelt es sich bei der Grenze um eine Freigrenze oder einen Freibetrag?",
-o:[["Voll steuerpflichtig als privates Veräußerungsgeschäft (Frist 10 Jahre)","Zwischen Anschaffung und Veräußerung liegen weniger als 10 Jahre. Eine Eigennutzungsausnahme greift bei Vermietung nicht."],
-["Steuerfrei, weil die Haltedauer über einem Jahr liegt","Die Einjahresfrist gilt für andere Wirtschaftsgüter, nicht für Grundstücke."],
-["49.000 € steuerpflichtig","Die 1.000 € sind eine Freigrenze, kein Freibetrag. Bei Überschreiten ist alles steuerpflichtig."],
-["Abgeltungsteuer 25 %","Private Veräußerungsgeschäfte unterliegen dem tariflichen Steuersatz."]],
-n:"§ 23 Abs. 3 S. 5 EStG: Freigrenze 1.000 € (seit VZ 2024)."},
-{q:"Eine Privatperson verkauft ihre 2 %-Beteiligung an einer GmbH. Veräußerungspreis 150.000 €, Anschaffungskosten 50.000 €. Welcher Betrag ist steuerpflichtig?",
-h:"Ab 1 % Beteiligung gilt § 17 EStG (nicht § 20). Welches Verfahren gilt dort für Gewinne aus Kapitalgesellschaftsanteilen?",
-o:[["60.000 € (Teileinkünfteverfahren)","Gewinn 100.000 €; 40 % steuerfrei (§ 3 Nr. 40 S. 1 Buchst. c EStG). Der Freibetrag nach § 17 Abs. 3 EStG ist hier vollständig abgeschmolzen."],
-["100.000 € mit 25 % Abgeltungsteuer","Die Abgeltungsteuer gilt nur für Beteiligungen unter 1 % (§ 20 Abs. 2 EStG)."],
-["0 €, weil die Beteiligung unter 10 % liegt","Die Grenze bei § 17 EStG liegt bei 1 % innerhalb der letzten 5 Jahre."],
-["5.000 €","Das wäre die 5 %-Fiktion nach § 8b KStG. Sie gilt nur für Körperschaften."]],
-n:"§ 17 EStG: Einkünfte aus Gewerbebetrieb; Verluste zu 60 % berücksichtigungsfähig (§ 3c Abs. 2 EStG)."},
-{q:"Ein Privatanleger erzielt Verluste aus Aktienverkäufen und Gewinne aus Anleiheverkäufen. Wie können die Aktienverluste verrechnet werden?",
-h:"§ 20 Abs. 6 EStG enthält eine besondere Verlustverrechnungsbeschränkung für Aktien.",
-o:[["Nur mit Gewinnen aus der Veräußerung von Aktien (sonst Vortrag)","§ 20 Abs. 6 S. 4 EStG. Die Verfassungsmäßigkeit wird derzeit vom BVerfG geprüft."],
-["Mit allen positiven Kapitalerträgen","Das gilt für allgemeine Kapitalverluste, nicht für Aktienveräußerungsverluste."],
-["Mit allen anderen Einkunftsarten","Kapitalverluste dürfen nicht mit anderen Einkunftsarten verrechnet werden (§ 20 Abs. 6 S. 1 EStG)."],
-["Gar nicht, sie verfallen sofort","Nicht verrechnete Aktienverluste werden vorgetragen."]],
-n:"Abgeltungsteuer: 25 % + SolZ = 26,375 % (ohne KiSt)."}
-]},
-{ title:"Gewinnermittlung & Betriebsausgaben", icon:"🧾", qs:[
-{q:"Ein Unternehmer kauft im März 2026 einen Laptop für 790 € netto (vorsteuerabzugsberechtigt). Wie kann er ihn steuerlich behandeln?",
-h:"Prüfe die Grenzen des § 6 Abs. 2 und 2a EStG und ob netto oder brutto zählt.",
-o:[["Wahlweise Sofortabzug als GWG (≤ 800 € netto)","§ 6 Abs. 2 EStG; alternativ Sammelposten oder reguläre AfA. Maßgeblich ist der Nettobetrag bei Vorsteuerabzug."],
-["Zwingend Einstellung in einen Sammelposten","Der Sammelposten (250 bis 1.000 €) ist ein Wahlrecht, keine Pflicht."],
-["Nur lineare AfA über die Nutzungsdauer","Das ist möglich, aber nicht zwingend. Außerdem dürfen Computerhardware ohnehin über 1 Jahr abgeschrieben werden (BMF)."],
-["Kein Sofortabzug, weil brutto 940,10 € > 800 €","Bei Vorsteuerabzug zählt der Nettobetrag."]],
-n:"GWG: abnutzbar, beweglich, selbständig nutzbar, AK ≤ 800 € netto."},
-{q:"Geschäftliche Bewirtung von Kunden: 1.000 € netto, ordnungsgemäß nachgewiesen. Welcher Betrag ist als Betriebsausgabe abziehbar?",
-h:"§ 4 Abs. 5 S. 1 Nr. 2 EStG: angemessene, nachgewiesene Bewirtungskosten aus geschäftlichem Anlass. Welche Quote?",
-o:[["700 €","70 % sind abziehbar. Die Vorsteuer ist dennoch zu 100 % abziehbar."],
-["1.000 €","Die 30 %-Kürzung wurde vergessen."],
-["500 €","50 % ist keine Quote für Bewirtungskosten."],
-["0 €","Geschäftliche Bewirtungen sind nicht vollständig vom Abzug ausgeschlossen."]],
-n:"Reine Arbeitnehmerbewirtung (Betriebsfeier) ist voll abziehbar, keine 70 %-Grenze."},
-{q:"Ein Unternehmer schenkt einem Geschäftsfreund 2026 ein Präsent für 60 € netto. Wie ist der Aufwand zu behandeln?",
-h:"§ 4 Abs. 5 S. 1 Nr. 1 EStG: Wie hoch ist die Grenze, und ist sie eine Freigrenze oder ein Freibetrag?",
-o:[["Nicht abziehbar, weil die Freigrenze von 50 € je Empfänger und Jahr überschritten ist","Seit 2024 gilt eine Freigrenze von 50 €. Wird sie überschritten, entfällt der gesamte Abzug."],
-["50 € abziehbar, 10 € nicht","Es handelt sich um eine Freigrenze, nicht um einen Freibetrag."],
-["Voll abziehbar, weil die Grenze 35 € beträgt und nur für Arbeitnehmer gilt","35 € war die Grenze bis 2023, und sie gilt gerade für Nicht-Arbeitnehmer."],
-["Voll abziehbar als Aufmerksamkeit bis 60 €","Die 60 €-Grenze für Aufmerksamkeiten betrifft Arbeitnehmer im Lohnsteuerrecht."]],
-n:"Auch die Vorsteuer ist bei Überschreiten der Grenze nicht abziehbar (§ 15 Abs. 1a UStG)."},
-{q:"Eine Maschine (Nutzungsdauer 10 Jahre) wird im Januar 2026 für 100.000 € angeschafft. Wie hoch ist die maximale degressive AfA im Jahr 2026?",
-h:"Investitionssofortprogramm 2025: degressive AfA für Anschaffungen nach dem 30.6.2025 und vor dem 1.1.2028. Welcher Vervielfältiger, welcher Höchstsatz?",
-o:[["30.000 €","3-fache lineare AfA (10 % × 3 = 30 %), höchstens 30 % (§ 7 Abs. 2 EStG)."],
-["25.000 €","2,5-fach / max. 25 % galt für Anschaffungen 2020 bis 2022."],
-["20.000 €","2-fach / max. 20 % galt für Anschaffungen von April bis Dezember 2024 (Wachstumschancengesetz)."],
-["10.000 €","Das ist die lineare AfA."]],
-n:"Wechsel von degressiv zu linear zulässig, umgekehrt nicht (§ 7 Abs. 3 EStG)."},
-{q:"Ein Unternehmer nutzt einen betrieblichen Verbrenner-Pkw (Bruttolistenpreis 50.000 €) auch privat. Wie hoch ist der monatliche Entnahmewert nach der 1 %-Regelung?",
-h:"Bemessungsgrundlage ist der inländische Bruttolistenpreis. Ermäßigungen gibt es nur für E- und Hybridfahrzeuge.",
-o:[["500 €","1 % von 50.000 € (§ 6 Abs. 1 Nr. 4 S. 2 EStG)."],
-["125 €","0,25 % gilt nur für reine E-Fahrzeuge (Bruttolistenpreis bis 100.000 € bei Anschaffung ab 1.7.2025)."],
-["250 €","0,5 % gilt für bestimmte Plug-in-Hybride."],
-["6.000 €","Das ist der Jahreswert, gefragt war der Monatswert."]],
-n:"Alternative: Fahrtenbuchmethode; Kostendeckelung auf tatsächliche Kosten."},
-{q:"In der Handelsbilanz wird eine Drohverlustrückstellung gebildet. Was gilt in der Steuerbilanz?",
-h:"§ 5 Abs. 4a EStG enthält ein ausdrückliches steuerliches Passivierungsverbot.",
-o:[["Ansatzverbot: Drohverlustrückstellungen dürfen nicht gebildet werden","§ 5 Abs. 4a EStG durchbricht die Maßgeblichkeit."],
-["Ansatzpflicht wegen Maßgeblichkeit","Die Maßgeblichkeit wird durch den steuerlichen Ansatzvorbehalt (§ 5 Abs. 6 EStG) eingeschränkt."],
-["Ansatzwahlrecht","Steuerlich besteht kein Wahlrecht."],
-["Ansatz nur mit 50 % des HGB-Werts","Eine solche Regelung gibt es nicht."]],
-n:"Teilwertabschreibung steuerlich: Wahlrecht, nur bei voraussichtlich dauernder Wertminderung."}
-]},
-{ title:"Körperschaftsteuer", icon:"🏢", qs:[
-{q:"Ein Gesellschafter-Geschäftsführer erhält 150.000 € Gehalt; angemessen wären 100.000 €. Welche Folgen hat das?",
-h:"vGA-Definition: Vermögensminderung, durch das Gesellschaftsverhältnis veranlasst, Auswirkung auf das Einkommen, kein Gewinnverteilungsbeschluss. Prüfe beide Ebenen (GmbH und Gesellschafter).",
-o:[["50.000 € vGA: außerbilanzielle Hinzurechnung bei der GmbH; beim Gesellschafter Kapitaleinkünfte statt Arbeitslohn","§ 8 Abs. 3 S. 2 KStG; § 20 Abs. 1 Nr. 1 S. 2 EStG (Abgeltungsteuer bzw. Teileinkünfte, je nach Fall)."],
-["Das gesamte Gehalt von 150.000 € ist eine vGA","Nur der unangemessene Teil ist eine vGA, sofern die formalen Voraussetzungen erfüllt sind."],
-["Keine Korrektur, weil Gehälter immer Betriebsausgaben sind","Unangemessene Bezüge an Gesellschafter sind gesellschaftsrechtlich veranlasst."],
-["Korrektur in der Steuerbilanz durch Rückforderungsanspruch","Die vGA wird außerbilanziell korrigiert. Ein Rückforderungsanspruch ist eine Einlage, wenn er besteht."]],
-n:"Fremdvergleich: Würde ein ordentlicher, gewissenhafter Geschäftsleiter dies einem Nichtgesellschafter gewähren?"},
-{q:"Eine GmbH veräußert eine 5 %-Beteiligung an einer anderen GmbH mit 1.000.000 € Gewinn. Welcher Betrag erhöht das Einkommen?",
-h:"Unterscheide § 8b Abs. 2 (Veräußerungsgewinne) von Abs. 4 (Streubesitzdividenden). Gilt die 10 %-Grenze auch für Veräußerungen?",
-o:[["50.000 €","95 % steuerfrei (§ 8b Abs. 2 und 3 KStG). Die Streubesitzregel gilt nur für Dividenden."],
-["1.000.000 €","§ 8b Abs. 4 KStG (Streubesitz) betrifft nur Bezüge, nicht Veräußerungsgewinne."],
-["0 €","Die 5 %-Fiktion nicht abziehbarer Betriebsausgaben wurde vergessen."],
-["600.000 €","Das Teileinkünfteverfahren gilt für natürliche Personen, nicht für Körperschaften."]],
-n:"Veräußerungsverluste und Teilwertabschreibungen sind nach § 8b Abs. 3 KStG nicht abziehbar."},
-{q:"Eine GmbH erhält eine Dividende aus einer 8 %-Beteiligung (seit Jahren unverändert). Wie ist sie bei KSt und GewSt zu behandeln?",
-h:"KSt: Streubesitzgrenze in § 8b Abs. 4 KStG. GewSt: Schachtelprivileg in § 9 Nr. 2a GewStG mit eigener Grenze.",
-o:[["KSt: voll steuerpflichtig; GewSt: voll steuerpflichtig","Unter 10 % gilt der Streubesitz (KSt); unter 15 % gibt es kein Schachtelprivileg (GewSt)."],
-["KSt: zu 95 % steuerfrei; GewSt: voll steuerpflichtig","Die 95 %-Freistellung greift für Dividenden erst ab 10 %."],
-["KSt und GewSt: zu 95 % steuerfrei","Weder die 10 %- noch die 15 %-Grenze ist erreicht."],
-["KSt: steuerpflichtig; GewSt: steuerfrei","Die GewSt-Kürzung setzt mindestens 15 % zu Beginn des Erhebungszeitraums voraus."]],
-n:"10 % (KSt, Beginn Kalenderjahr) – 15 % (GewSt, Beginn Erhebungszeitraum)."},
-{q:"Wie hoch ist die Ertragsteuerbelastung einer GmbH im VZ 2026 bei einem GewSt-Hebesatz von 400 %?",
-h:"KSt 15 % + SolZ 5,5 % auf die KSt + GewSt (3,5 % × Hebesatz). Die GewSt ist keine Betriebsausgabe.",
-o:[["29,825 %","15 % + 0,825 % + 14 % = 29,825 %."],
-["30 %","Das ist ein grober Näherungswert ohne exakten SolZ."],
-["15,825 %","Die Gewerbesteuer fehlt."],
-["25 %","Das ist der Abgeltungsteuersatz, kein Unternehmensteuersatz."]],
-n:"Ab 2028 sinkt der KSt-Satz jährlich um 1 Prozentpunkt bis auf 10 % ab VZ 2032."},
-{q:"Innerhalb von 5 Jahren werden 40 % der Anteile an einer GmbH mit Verlustvortrag an einen Erwerber übertragen. Was gilt nach § 8c KStG?",
-h:"Denk an die Entscheidung des BVerfG zum quotalen Verlustuntergang und die Reaktion des Gesetzgebers.",
-o:[["Der Verlustvortrag bleibt vollständig erhalten","Der quotale Untergang (25 bis 50 %) wurde nach dem BVerfG-Beschluss von 2017 rückwirkend abgeschafft. Schädlich ist erst eine Übertragung von mehr als 50 %."],
-["40 % des Verlustvortrags gehen unter","Das war die alte quotale Regel, die nicht mehr gilt."],
-["Der gesamte Verlustvortrag geht unter","Das gilt erst bei mehr als 50 %."],
-["Der Verlust bleibt nur bei Anwendung der Sanierungsklausel erhalten","Die Sanierungsklausel ist erst bei einem schädlichen Erwerb relevant."]],
-n:"Ausnahmen bei > 50 %: Konzernklausel, Stille-Reserven-Klausel, Sanierungsklausel, § 8d KStG."},
-{q:"Welche Voraussetzung gehört zur körperschaftsteuerlichen Organschaft (§ 14 KStG)?",
-h:"Prüfe: Eingliederungsart, Vertrag, Laufzeit und tatsächliche Durchführung.",
-o:[["Mehrheit der Stimmrechte ununterbrochen vom Beginn des Wirtschaftsjahres an plus Gewinnabführungsvertrag über mindestens 5 Zeitjahre","Finanzielle Eingliederung und GAV (tatsächlich durchgeführt) sind die Kernvoraussetzungen."],
-["Mindestens 75 % Kapitalbeteiligung","Maßgeblich ist die Stimmrechtsmehrheit, keine 75 %-Grenze."],
-["Zusätzlich wirtschaftliche und organisatorische Eingliederung","Das ist nur bei der umsatzsteuerlichen Organschaft erforderlich."],
-["Ein Beherrschungsvertrag genügt","Erforderlich ist ein Gewinnabführungsvertrag."]],
-n:"Folge: Das Einkommen der Organgesellschaft wird dem Organträger zugerechnet; Ausgleichszahlungen versteuert die Organgesellschaft selbst (§ 16 KStG)."}
-]},
-{ title:"Gewerbesteuer", icon:"🏭", qs:[
-{q:"Einzelunternehmer, Gewerbeertrag (abgerundet) 60.000 €, Hebesatz 400 %. Wie hoch ist die Gewerbesteuer?",
-h:"Gewerbeertrag − Freibetrag für natürliche Personen bzw. Personengesellschaften → × Steuermesszahl 3,5 % → × Hebesatz.",
-o:[["4.970 €","(60.000 − 24.500) × 3,5 % = 1.242,50 € × 400 % = 4.970 €."],
-["8.400 €","Der Freibetrag von 24.500 € (§ 11 Abs. 1 S. 3 Nr. 1 GewStG) fehlt."],
-["1.242,50 €","Das ist der Steuermessbetrag. Der Hebesatz fehlt."],
-["4.200 €","Der Freibetrag wurde falsch angesetzt (30.000 € statt 24.500 €)."]],
-n:"Kapitalgesellschaften: kein Freibetrag."},
-{q:"Steuermessbetrag 1.242,50 €, Hebesatz 450 % (GewSt 5.591,25 €). Wie hoch ist die Steuerermäßigung nach § 35 EStG (ausreichende anteilige ESt unterstellt)?",
-h:"Anrechnung: Faktor × Messbetrag, begrenzt auf die tatsächlich zu zahlende Gewerbesteuer.",
-o:[["4.970,00 €","4,0 × 1.242,50 €. Das liegt unter der tatsächlichen GewSt, also keine Kappung."],
-["5.591,25 €","Die tatsächliche GewSt ist nur die Obergrenze. Bei Hebesätzen über 400 % bleibt eine Restbelastung."],
-["4.721,50 €","Der Faktor 3,8 galt bis 2019."],
-["1.242,50 €","Der Anrechnungsfaktor fehlt."]],
-n:"Bis Hebesatz ca. 400 % wird die GewSt bei Einzelunternehmern im Ergebnis weitgehend neutralisiert."},
-{q:"GmbH: Zinsen 150.000 €, Miete Lagerhalle 200.000 €, Leasing Maschinen 100.000 €, Lizenzgebühren 50.000 €. Wie hoch ist die Hinzurechnung nach § 8 Nr. 1 GewStG?",
-h:"Finanzierungsanteile bilden: Zinsen 100 %, unbewegliche WG 50 %, bewegliche WG 20 %, Lizenzen 25 %. Summe − 200.000 € Freibetrag, davon 1/4.",
-o:[["20.625 €","150.000 + 100.000 + 20.000 + 12.500 = 282.500; − 200.000 = 82.500 × 25 %."],
-["0 €","Die Zinsen allein liegen zwar unter 200.000 €, der Freibetrag gilt aber für die Summe aller Finanzierungsanteile."],
-["75.000 €","Mieten, Leasing und Lizenzen wurden voll statt mit ihrem Finanzierungsanteil angesetzt."],
-["70.625 €","Der Freibetrag von 200.000 € fehlt."]],
-n:"Effektiv: Zinsen 25 %, Immobilienmiete 12,5 %, Mobilienmiete 5 %, Lizenzen 6,25 %."},
-{q:"Wie hoch ist ab dem Erhebungszeitraum 2025 die einfache Kürzung für Grundbesitz (§ 9 Nr. 1 S. 1 GewStG)?",
-h:"Die Grundsteuerreform hat die Bemessungsgrundlage geändert: Einheitswert → Grundsteuerwert.",
-o:[["0,11 % des Grundsteuerwerts","Seit EZ 2025 als Folge der Grundsteuerreform."],
-["1,2 % von 140 % des Einheitswerts","Das ist die Regel bis EZ 2024."],
-["3,5 % des Grundsteuerwerts","3,5 % ist die Steuermesszahl auf den Gewerbeertrag."],
-["Kürzung des gesamten Ertrags aus Grundbesitz","Das ist die erweiterte Kürzung für reine Grundstücksunternehmen (§ 9 Nr. 1 S. 2 GewStG)."]],
-n:"Grundbesitz im Betriebsvermögen wird so nicht doppelt mit GewSt und GrSt belastet."},
-{q:"Ab welcher Beteiligungshöhe greift das gewerbesteuerliche Schachtelprivileg (§ 9 Nr. 2a GewStG) für Dividenden?",
-h:"Nicht mit der KSt-Grenze verwechseln. Maßgeblicher Zeitpunkt ist der Beginn des Erhebungszeitraums.",
-o:[["Mindestens 15 % zu Beginn des Erhebungszeitraums","Dann wird die Dividende gekürzt. Die 5 % nicht abziehbare BA nach § 8b Abs. 5 KStG bleiben in der GewSt (§ 9 Nr. 2a S. 4 GewStG)."],
-["Mindestens 10 % zu Beginn des Kalenderjahres","Das ist die KSt-Grenze nach § 8b Abs. 4 KStG."],
-["Mindestens 25 %","Diese Grenze ist veraltet."],
-["Bei jeder Beteiligungshöhe","Bei Streubesitz unter 15 % erfolgt eine Hinzurechnung nach § 8 Nr. 5 GewStG."]],
-n:"Unter 15 % → Hinzurechnung des nach § 8b KStG steuerfreien Teils (§ 8 Nr. 5 GewStG)."},
-{q:"Ist die Gewerbesteuer bei der Gewinnermittlung als Betriebsausgabe abziehbar?",
-h:"Schau in § 4 Abs. 5b EStG.",
-o:[["Nein, sie ist keine Betriebsausgabe (§ 4 Abs. 5b EStG)","Seit 2008 ist die GewSt einschließlich Nebenleistungen nicht abziehbar. Sie wird außerbilanziell hinzugerechnet."],
-["Ja, voll","Das war die Rechtslage bis 2007."],
-["Ja, zu 50 %","Eine Teilabzugsfähigkeit gibt es nicht."],
-["Nur bei Kapitalgesellschaften","Das Abzugsverbot gilt rechtsformunabhängig."]],
-n:"In der Handelsbilanz wird die GewSt-Rückstellung dennoch passiviert."}
-]},
-{ title:"Umsatzsteuer", icon:"🧾", qs:[
-{q:"Ein deutscher Unternehmensberater berät ein französisches Unternehmen (B2B). Wo ist der Leistungsort, und wer schuldet die Steuer?",
-h:"Für sonstige Leistungen gibt es die Grundregeln § 3a Abs. 2 (B2B) und Abs. 1 (B2C). Prüfe, ob eine Sonderregel greift (z. B. Grundstück).",
-o:[["Frankreich (Sitz des Empfängers); der Empfänger schuldet die Steuer im Reverse-Charge-Verfahren","§ 3a Abs. 2 UStG. In Deutschland nicht steuerbar; Rechnung mit Hinweis „Steuerschuldnerschaft des Leistungsempfängers“, Meldung in der ZM."],
-["Deutschland (Sitz des Leistenden)","Das ist die B2C-Grundregel (§ 3a Abs. 1 UStG)."],
-["Steuerfreie innergemeinschaftliche Lieferung","Beratung ist eine sonstige Leistung, keine Lieferung."],
-["Ort, an dem die Beratung tatsächlich erbracht wird","Der Tätigkeitsort gilt nur für bestimmte Leistungen (z. B. Veranstaltungsleistungen gegenüber Nichtunternehmern)."]],
-n:"Prüfschema: Unternehmer → Leistung → Ort → Steuerbarkeit → Steuerbefreiung → BMG → Steuersatz → Steuerschuldner."},
-{q:"Ein Restaurant verkauft 2026 ein Menü mit Speisen und Getränken vor Ort. Welche Steuersätze gelten?",
-h:"Seit 1.1.2026 gilt die dauerhafte Regelung für Restaurant- und Verpflegungsdienstleistungen. Gilt sie auch für Getränke?",
-o:[["Speisen 7 %, Getränke 19 %","§ 12 Abs. 2 UStG i.d.F. ab 2026. Bei Kombiangeboten ist das Entgelt aufzuteilen."],
-["Alles 19 %","Das war bis Ende 2025 die Regel für Speisen vor Ort."],
-["Alles 7 %","Getränke sind ausdrücklich ausgenommen."],
-["Speisen steuerfrei, Getränke 19 %","Es gibt keine Steuerbefreiung, nur den ermäßigten Satz."]],
-n:"Pauschale Aufteilung von Kombiangeboten (z. B. 30 % Getränke) ist nach BMF-Verwaltungsauffassung möglich."},
-{q:"Kleinunternehmer 2026: Vorjahresumsatz 24.000 €. Im Oktober 2026 wird mit einem Umsatz die Grenze von 100.000 € überschritten. Was gilt?",
-h:"§ 19 UStG n.F. (seit 2025): Beide Grenzen prüfen und klären, ab wann die Regelbesteuerung greift.",
-o:[["Bereits der Umsatz, mit dem die 100.000 €-Grenze überschritten wird, unterliegt der Regelbesteuerung","Seit 2025 endet die Kleinunternehmerregelung sofort, nicht erst im Folgejahr."],
-["Regelbesteuerung erst ab dem Folgejahr","Das galt für die alte Prognosegrenze, nicht für die neue 100.000 €-Grenze."],
-["Rückwirkende Regelbesteuerung für das ganze Jahr","Die vorherigen Umsätze bleiben steuerfrei."],
-["Keine Folge, weil nur der Vorjahresumsatz maßgeblich ist","Seit 2025 gibt es auch eine Grenze für das laufende Jahr."]],
-n:"Grenzen: 25.000 € (Vorjahr) und 100.000 € (laufendes Jahr); Kleinunternehmerumsätze sind steuerfrei."},
-{q:"Ein Sollversteuerer (monatliche Voranmeldung) führt eine Leistung im März aus, stellt die Rechnung im April und erhält das Geld im Mai. Wann entsteht die USt?",
-h:"§ 13 Abs. 1 Nr. 1 Buchst. a UStG: Woran knüpft die Sollbesteuerung an – Leistung, Rechnung oder Zahlung?",
-o:[["Mit Ablauf des Voranmeldungszeitraums März","Maßgeblich ist der Zeitpunkt der Leistungsausführung."],
-["Mit Ablauf April (Rechnungsstellung)","Die Rechnung ist für die Entstehung bei der Sollbesteuerung irrelevant (Ausnahme: § 14c UStG)."],
-["Mit Ablauf Mai (Zahlung)","Das gilt bei der Istbesteuerung (§ 20 UStG, Vorjahresumsatz ≤ 800.000 €)."],
-["Bei Vertragsschluss","Der Vertragsschluss löst keine USt aus. Ausnahme: Anzahlungen (Mindest-Ist)."]],
-n:"Anzahlungen: USt entsteht mit Vereinnahmung (§ 13 Abs. 1 Nr. 1 Buchst. a S. 4 UStG)."},
-{q:"Ab wann müssen alle inländischen Unternehmer im B2B-Bereich grundsätzlich E-Rechnungen ausstellen?",
-h:"Unterscheide Empfangspflicht und Ausstellungspflicht samt Übergangsfristen.",
-o:[["Ab 1.1.2028","Ab dann ist die Ausstellung für alle Pflicht. Übergangsweise sind 2027 sonstige Rechnungen noch bei einem Vorjahresumsatz ≤ 800.000 € zulässig."],
-["Ab 1.1.2025","Seit dann müssen Unternehmer E-Rechnungen empfangen können."],
-["Ab 1.1.2027 für alle","Ab 2027 gilt die Pflicht nur für Unternehmer mit Vorjahresumsatz über 800.000 €."],
-["Es gibt keine Pflicht","Die Pflicht folgt aus § 14 UStG i.d.F. des Wachstumschancengesetzes."]],
-n:"Ausgenommen: Kleinbetragsrechnungen (≤ 250 €), Fahrausweise; B2C weiterhin frei."},
-{q:"Ein Bauunternehmer erbringt eine Bauleistung an einen anderen Bauunternehmer, der selbst nachhaltig Bauleistungen erbringt. Wer schuldet die USt?",
-h:"§ 13b Abs. 2 Nr. 4 und Abs. 5 UStG: Für welche Leistungen und welche Empfänger kehrt sich die Steuerschuldnerschaft um?",
-o:[["Der Leistungsempfänger (Reverse Charge)","Der Empfänger erbringt selbst nachhaltig Bauleistungen (Nachweis z. B. Bescheinigung USt 1 TG)."],
-["Der leistende Bauunternehmer","Das wäre der Regelfall, hier greift aber § 13b UStG."],
-["Beide als Gesamtschuldner","Eine Gesamtschuld besteht nur in Sonderfällen (z. B. § 25e UStG)."],
-["Niemand, Bauleistungen sind steuerfrei","Bauleistungen sind steuerpflichtig. Steuerfrei ist nur die Grundstückslieferung nach § 4 Nr. 9a UStG."]],
-n:"Der Empfänger kann die geschuldete Steuer regelmäßig zugleich als Vorsteuer abziehen."}
-]},
-{ title:"ErbSt, UmwSt & Internationales", icon:"🌍", qs:[
-{q:"Ein Vater schenkt seinem Kind 2020 300.000 € und 2026 weitere 300.000 €. Wie hoch ist der steuerpflichtige Erwerb 2026 (vor Rundung)?",
-h:"§ 14 ErbStG: Erwerbe innerhalb von 10 Jahren werden zusammengerechnet. Der Freibetrag des Kindes gilt einmal je 10 Jahre.",
-o:[["200.000 €","600.000 € − 400.000 € Freibetrag. Die Steuer auf den Vorerwerb wird angerechnet (hier 0 €)."],
-["0 €","Der Freibetrag gilt nicht für jede Schenkung neu, sondern einmal je 10 Jahre."],
-["300.000 €","Der verbleibende Freibetrag (100.000 €) wurde nicht berücksichtigt."],
-["600.000 €","Der Freibetrag wurde ganz vergessen."]],
-n:"§ 16 ErbStG: Ehegatte 500.000 €, Kind 400.000 €, Enkel 200.000 €, Steuerklasse II/III 20.000 €."},
-{q:"Was gilt bei der Regelverschonung für begünstigtes Betriebsvermögen (§ 13a ErbStG)?",
-h:"Unterscheide Regel- und Optionsverschonung: Verschonungsabschlag, Behaltensfrist, Lohnsumme.",
-o:[["85 % steuerfrei, 5 Jahre Behaltensfrist, Mindestlohnsumme 400 % (bei > 15 Beschäftigten)","Zusätzlich Abzugsbetrag bis 150.000 € (§ 13a Abs. 2 ErbStG) für den verbleibenden Teil."],
-["100 % steuerfrei, 7 Jahre, Lohnsumme 700 %","Das ist die Optionsverschonung (Verwaltungsvermögen max. 20 %)."],
-["50 % steuerfrei, 3 Jahre","Diese Werte gibt es im ErbStG nicht."],
-["85 % steuerfrei, 7 Jahre Behaltensfrist","Bei der Regelverschonung beträgt die Behaltensfrist 5 Jahre."]],
-n:"Großerwerbe über 26 Mio. €: Abschmelzungsmodell oder Verschonungsbedarfsprüfung."},
-{q:"Vereinfachtes Ertragswertverfahren (§§ 199 ff. BewG): Nachhaltig erzielbarer Jahresertrag 200.000 €. Wie hoch ist der Ertragswert?",
-h:"Ertragswert = Jahresertrag × Kapitalisierungsfaktor. Welcher Faktor gilt seit 2016?",
-o:[["2.750.000 €","200.000 € × 13,75 (§ 203 Abs. 1 BewG)."],
-["3.571.429 €","Der alte Faktor von ca. 17,86 galt bis 2015."],
-["2.000.000 €","Ein Faktor von 10 ist im Gesetz nicht vorgesehen."],
-["2.500.000 €","12,5 ist nicht der gesetzliche Faktor."]],
-n:"Mindestwert ist der Substanzwert (§ 11 Abs. 2 S. 3 BewG)."},
-{q:"Ein Betrieb wird zum Buchwert in eine GmbH eingebracht (§ 20 UmwStG), stille Reserven 700.000 €. Die Anteile werden nach 3 vollen Zeitjahren veräußert. Wie hoch ist der Einbringungsgewinn I?",
-h:"§ 22 Abs. 1 UmwStG: Sperrfrist 7 Jahre; der Einbringungsgewinn I mindert sich um 1/7 je abgelaufenem Zeitjahr.",
-o:[["400.000 €","700.000 € × 4/7. Er ist rückwirkend beim Einbringenden zu versteuern und erhöht die Anschaffungskosten der Anteile."],
-["700.000 €","Die Siebtelregelung wurde nicht berücksichtigt."],
-["300.000 €","Die abgelaufenen 3/7 werden abgezogen, versteuert werden die verbleibenden 4/7."],
-["0 €","Der Buchwertansatz schützt nur bei Einhaltung der 7-jährigen Sperrfrist."]],
-n:"Einbringungsgewinn I: Anteilsveräußerung nach Sacheinlage; II: Veräußerung eingebrachter Anteile durch die übernehmende Gesellschaft."},
-{q:"Ab welcher Dauer begründet eine Bauausführung nach dem OECD-Musterabkommen eine Betriebsstätte?",
-h:"Unterscheide das nationale Recht (§ 12 AO) vom Abkommensrecht (Art. 5 OECD-MA). Im DBA-Fall geht das Abkommen vor.",
-o:[["Mehr als 12 Monate","Art. 5 Abs. 3 OECD-MA. Einzelne DBA können abweichen."],
-["Mehr als 6 Monate","Das ist die nationale Regel in § 12 S. 2 Nr. 8 AO."],
-["Mehr als 3 Monate","Diese Frist gibt es weder im OECD-MA noch in der AO als Regelfall."],
-["Mehr als 24 Monate","Dieser Zeitraum ist zu lang."]],
-n:"Betriebsstättengewinne: Art. 7 OECD-MA; in DE-DBA meist Freistellung mit Progressionsvorbehalt."},
-{q:"Ab welcher Ertragsteuerbelastung gilt eine ausländische Zwischengesellschaft seit 2024 als niedrig besteuert (Hinzurechnungsbesteuerung)?",
-h:"Der Gesetzgeber hat die Grenze im Zuge der globalen Mindestbesteuerung angepasst.",
-o:[["Unter 15 %","§ 8 Abs. 5 AStG i.d.F. ab 2024, angeglichen an den Mindeststeuersatz."],
-["Unter 25 %","Das war die alte Niedrigsteuergrenze bis 2023."],
-["Unter 10 %","Das ist keine AStG-Grenze."],
-["Unter 30 %","Das entspricht etwa der deutschen Gesamtbelastung, ist aber nicht die Niedrigsteuergrenze."]],
-n:"Mindeststeuergesetz: Konzerne mit ≥ 750 Mio. € Umsatz in 2 der 4 vorangegangenen Geschäftsjahre."}
-]}
-]}
-];
-/* ======================= APP-LOGIK ======================= /
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const app=$("#app");
-const KEY="wplingo-v2", HMAX=5, HREG=30601000, GOAL=30, IV=[0,1,2,4,8,16,32], DAY=864e5;
-let tab=0, L=null;
-const today=(o=0)=>{const d=new Date();d.setDate(d.getDate()+o);return d.toLocaleDateString("sv")};
-const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-const pick=a=>a[Math.floor(Math.random()a.length)];
-const fmt=n=>n.toLocaleString("de-DE");
-const hash=s=>{let h=0;for(const ch of s)h=(h31+ch.charCodeAt(0))|0;return(h>>>0).toString(36)};
-C.forEach((c,ci)=>c.lessons.forEach((l,li)=>l.qs.forEach(q=>{q.id=hash(q.q);q.ci=ci;q.li=li})));
-const ALL=C.flatMap(c=>c.lessons.flatMap(l=>l.qs));
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
-const S=Object.assign({xp:0,streak:0,lastDay:null,hearts:HMAX,heartTs:Date.now(),cards:{},done:{},dayXp:0,xpDay:today(),unlockAll:false},load());
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function regen(){if(S.hearts>=HMAX){S.heartTs=Date.now();return}const n=Math.floor((Date.now()-S.heartTs)/HREG);if(n>0){S.hearts=Math.min(HMAX,S.hearts+n);S.heartTs+=nHREG}if(S.hearts>=HMAX)S.heartTs=Date.now();save()}
-function dayCheck(){if(S.xpDay!==today()){S.xpDay=today();S.dayXp=0}}
-const streakNow=()=>(S.lastDay===today()||S.lastDay===today(-1))?S.streak:0;
-const box=q=>(S.cards[q.id]||{}).box||0;
-const pct=qs=>Math.round(qs.reduce((s,q)=>s+box(q),0)/(qs.length(IV.length-1))100);
-const dueList=()=>ALL.filter(q=>S.cards[q.id]&&S.cards[q.id].due<=Date.now());
-function grade(q,ok,hint){const b=ok?(hint?Math.max(box(q),1):Math.min(box(q)+1,IV.length-1)):0;S.cards[q.id]={box:b,due:Date.now()+IV[b]DAY}}
-function addXp(x){dayCheck();S.xp+=x;S.dayXp+=x;if(S.lastDay!==today()){S.streak=S.lastDay===today(-1)?S.streak+1:1;S.lastDay=today()}}
-function hud(){regen();dayCheck();return`<div class="hud"><span>🔥 ${streakNow()}</span><span>💎 ${fmt(S.xp)} XP</span><span>❤️ ${S.hearts}</span></div>`}
-function nav(a){const d=dueList().length;return`<nav class="nav"><button class="${a==="learn"?"on":""}" onclick="home()">🏠<small>Lernen</small></button><button class="${a==="review"?"on":""}" onclick="review()">🔁<small>Wiederholen${d?`<span class="badge">${d}</span>`:""}</small></button><button class="${a==="stats"?"on":""}" onclick="stats()">📊<small>Statistik</small></button></nav>`}
-function home(){
-L=null;const c=C[tab],offs=[0,60,85,60,0,-60,-85,-60];
-app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};home()">${x.icon} ${x.short}</button>`).join("")}</div>
-<div class="banner" style="--c:${c.color}"><h2>${c.title}</h2><div>${pct(c.lessons.flatMap(l=>l.qs))} % gemeistert · ${c.lessons.reduce((s,l)=>s+l.qs.length,0)} Fragen</div>
-<div class="row"><span>🎯 ${Math.min(S.dayXp,GOAL)}/${GOAL} XP</span><div class="bar"><div style="width:${Math.min(100,S.dayXp/GOAL100)}%"></div></div><button class="btn white" onclick="mix(${tab})">🎲 Mix</button></div></div>
-<div class="path">${c.lessons.map((l,li)=>{const n=S.done[tab+"-"+li]||0,open=S.unlockAll||li===0||!!S.done[tab+"-"+(li-1)];
-return`<div class="node ${open?"":"locked"}" style="--c:${c.color};transform:translateX(${offs[li%8]}px)" onclick="tryStart(${tab},${li},${open})"><div class="circle">${open?(n?"⭐":l.icon):"🔒"}</div><div class="lbl">${l.title}<small>${n?n+"× geschafft · ":""}${pct(l.qs)} % · ${l.qs.length} Fragen</small></div></div>`}).join("")}</div>`+nav("learn");
-window.scrollTo(0,0);
-}
-function tryStart(ci,li,open){if(!open&&!confirm("Diese Lektion ist noch gesperrt. Trotzdem starten?"))return;start(ci,li)}
-function start(ci,li){const qs=shuffle([...C[ci].lessons[li].qs]).sort((a,b)=>box(a)-box(b)).slice(0,8);begin(shuffle(qs),"lesson",ci,li)}
-function mix(ci){begin(shuffle(C[ci].lessons.flatMap(l=>[...l.qs])).slice(0,10),"mix",ci,null)}
-function review(){
-let qs=dueList().sort((a,b)=>S.cards[a.id].due-S.cards[b.id].due);
-if(!qs.length)qs=ALL.filter(q=>S.cards[q.id]).sort((a,b)=>box(a)-box(b));
-if(!qs.length){L=null;app.innerHTML=hud()+`<div class="end"><div class="big">📚</div><h2>Noch nichts zu wiederholen</h2><p>Starte zuerst ein paar Lektionen. Fällige und falsch beantwortete Fragen landen dann automatisch hier.</p><div class="col"><button class="btn" onclick="home()">Zu den Lektionen</button></div></div>`+nav("review");return}
-begin(shuffle(qs.slice(0,10)),"review",null,null);
-}
-function begin(qs,mode,ci,li){if(mode!=="review"){regen();if(S.hearts<=0)return noHearts()}L={mode,ci,li,queue:qs,total:qs.length,done:0,mistakes:0,firstWrong:0,hinted:0,seen:new Set()};renderQ()}
-function noHearts(){const m=Math.max(1,Math.ceil((HREG-(Date.now()-S.heartTs))/60000));L=null;
-app.innerHTML=hud()+`<div class="end"><div class="big">💔</div><h2>Keine Herzen mehr</h2><p>Nächstes Herz in ca. ${m} Min.</p><p>Tipp: Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück.</p><div class="col"><button class="btn" onclick="review()">🔁 Jetzt wiederholen</button><button class="btn sec" onclick="home()">Zurück</button></div></div>`+nav("learn")}
-function renderQ(){
-const q=L.queue[0];L.sel=null;L.checked=false;L.hint=false;
-const c=C[q.ci],ord=shuffle(q.o.map((_,i)=>i));
-app.innerHTML=`<div class="top"><button class="x" onclick="quit()">✕</button><div class="bar"><div style="width:${L.done/L.total100}%"></div></div><span class="hh">${L.mode==="review"?"🔁":"❤️ "+S.hearts}</span></div>
-<div class="card"><div class="tag" style="color:${c.color}">${c.icon} ${c.lessons[q.li].title}</div><h2 class="q">${q.q}</h2>
-<button id="hb" class="hintbtn" onclick="showHint()">💡 Tipp zur Herangehensweise</button><div id="hint" class="hint" hidden>💡 <b>Herangehensweise:</b> ${q.h}</div>
-<div class="opts">${ord.map((i,k)=>`<div class="opt" data-v="${i}"><span class="key">${"ABCDE"[k]}</span><div><div>${q.o[i][0]}</div><div class="why" hidden></div></div></div>`).join("")}</div></div>
-<div id="foot" class="foot"><div class="fi"><span class="kbd">Tasten: 1–4 wählen · H Tipp · Enter prüfen</span><button id="chk" class="btn" disabled onclick="check()">Prüfen</button></div></div>`;
-$$(".opt").forEach(b=>b.onclick=()=>pickOpt(b));
-window.scrollTo(0,0);
-}
-function pickOpt(b){if(!L||L.checked)return;$$(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");L.sel=+b.dataset.v;$("#chk").disabled=false}
-function showHint(){const h=$("#hint");if(!L||!h)return;h.hidden=false;$("#hb").hidden=true;if(!L.checked)L.hint=true}
-function check(){
-if(!L||L.checked||L.sel===null)return;
-const q=L.queue[0];L.checked=true;const ok=L.sel===0;
-$$(".opt").forEach(b=>{const v=+b.dataset.v,w=b.querySelector(".why");
-b.classList.remove("sel");b.classList.add(v===0?"right":v===L.sel?"wrongsel":"dim");
-w.innerHTML=`<b>${v===0?"✅ Stimmt:":"❌ Passt nicht:"}</b> ${q.o[v][1]}`;w.hidden=false});
-if(!L.seen.has(q.id)){L.seen.add(q.id);grade(q,ok,L.hint);if(!ok)L.firstWrong++;else if(L.hint)L.hinted++}
-if(ok){L.done++;L.queue.shift()}
-else{L.mistakes++;if(L.mode!=="review"){if(S.hearts>=HMAX)S.heartTs=Date.now();S.hearts=Math.max(0,S.hearts-1)}L.queue.push(L.queue.shift())}
-save();
-const f=$("#foot");f.className="foot "+(ok?"ok":"bad");
-f.innerHTML=`<div class="fi"><div class="msg"><h3>${ok?pick(["Richtig! ✅","Super! 🎉","Klasse! 💪","Genau! 🎯"]):"Leider falsch ❌ – die Frage kommt nochmal"}</h3>${q.n?`<p>📌 <b>Merke:</b> ${q.n}</p>`:""}<p style="color:#777">Begründungen zu allen Antworten stehen oben bei den Optionen.</p></div><button class="btn" onclick="next()">Weiter</button></div>`;
-$(".top .bar>div").style.width=(L.done/L.total100)+"%";
-const hh=$(".hh");if(hh&&L.mode!=="review")hh.textContent="❤️ "+S.hearts;
-$(".opts").scrollIntoView({behavior:"smooth",block:"start"});
-}
-function next(){if(L.mode!=="review"&&S.hearts<=0)return end(false);if(!L.queue.length)return end(true);renderQ()}
-function quit(){if(confirm("Lektion wirklich abbrechen?"))home()}
-function end(win){
-const m=L.mode;let xp=0,heart=false;
-const firstOk=L.total-L.firstWrong;
-if(win){xp=(m==="review"?5:10)+(firstOk-L.hinted)2+L.hinted+(L.firstWrong||L.hinted?0:5);addXp(xp);
-if(m==="lesson"){const k=L.ci+"-"+L.li;S.done[k]=(S.done[k]||0)+1}
-if(m==="review"&&S.hearts<HMAX){S.hearts++;heart=true}save()}
-const acc=Math.round(firstOk/L.total100);
-app.innerHTML=`<div class="end"><div class="big">${win?(acc===100&&!L.hinted?"🏆":"🎉"):"💔"}</div><h1>${win?(m==="review"?"Wiederholung geschafft!":"Lektion geschafft!"):"Keine Herzen mehr"}</h1>
-${win?`<div class="statgrid"><div><b>+${xp}</b><small>XP</small></div><div><b>${acc} %</b><small>auf Anhieb richtig</small></div><div><b>💡 ${L.hinted}</b><small>mit Tipp</small></div></div>${heart?"<p>❤️ +1 Herz fürs Wiederholen</p>":""}`
-:`<p>Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück.</p>`}
-<div class="col"><button class="btn" onclick="home()">Weiter</button>${win?"":`<button class="btn sec" onclick="review()">🔁 Wiederholen</button>`}</div></div>`;
-L=null;
-}
-function stats(){
-L=null;const seen=ALL.filter(q=>S.cards[q.id]).length;
-app.innerHTML=hud()+`<h2>📊 Dein Fortschritt</h2><div class="statgrid"><div><b>${fmt(S.xp)}</b><small>XP gesamt</small></div><div><b>🔥 ${streakNow()}</b><small>Tage in Folge</small></div><div><b>${seen}/${ALL.length}</b><small>Fragen gesehen</small></div></div>
-${C.map(c=>`<div class="sc" style="--c:${c.color}"><h3>${c.icon} ${c.title}</h3>${c.lessons.map(l=>`<div class="srow"><span>${l.title}</span><div class="bar"><div style="width:${pct(l.qs)}%;background:${c.color}"></div></div><b>${pct(l.qs)} %</b></div>`).join("")}</div>`).join("")}
-<h3>⚙️ Einstellungen</h3>
-<label class="set"><input type="checkbox" ${S.unlockAll?"checked":""} onchange="S.unlockAll=this.checked;save()"> Alle Lektionen freischalten</label>
-<div class="setbtns"><button class="btn sec" onclick="exportData()">Fortschritt exportieren</button><button class="btn sec" onclick="importData()">Importieren</button><button class="btn red" onclick="resetAll()">Alles zurücksetzen</button></div>
-<p style="color:#999;font-size:12px;margin-top:24px">„% gemeistert“ steigt, je öfter du eine Frage hintereinander ohne Tipp richtig beantwortest. Wiederholt wird nach 1, 2, 4, 8, 16 und 32 Tagen. Eine falsche Antwort setzt die Frage zurück, mit Tipp richtig beantwortete Fragen kommen früher wieder.</p>`+nav("stats");
-}
-function exportData(){prompt("Kopiere diesen Code und füge ihn auf dem anderen Gerät unter „Importieren“ ein:",JSON.stringify(S))}
-function importData(){const t=prompt("Fortschritts-Code hier einfügen:");if(!t)return;try{Object.assign(S,JSON.parse(t));save();stats();alert("Fortschritt importiert ✔")}catch(e){alert("Der Code ist ungültig.")}}
-function resetAll(){if(confirm("Wirklich den gesamten Fortschritt löschen?")){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}}
-document.addEventListener("keydown",e=>{
-if(!L)return;
-if(/^[1-5]$/.test(e.key)&&!L.checked){const b=$$(".opt")[+e.key-1];if(b)pickOpt(b)}
-else if(e.key.toLowerCase()==="h")showHint();
-else if(e.key==="Enter"){const b=$("#foot .btn");if(b&&!b.disabled){e.preventDefault();b.click()}}
-});
-home();
-</script>
-<script>
-/* =====================================================================
-TEIL 2: ERWEITERUNG – weitere Lektionen + Klausurfälle
-Format wie gehabt: Die ERSTE Antwortoption ist immer die richtige.
-===================================================================== /
-const PLUS_LESSONS = {
-"BWL / VWL": [
-{ title:"Kapitalmarkt & Derivate", icon:"📊", qs:[
-{q:"Risikoloser Zins 3 %, erwartete Marktrendite 8 %, Beta 0,8. Wie hoch ist die erwartete Rendite nach CAPM?",
-h:"CAPM: r = r_f + β · (r_M − r_f). Achtung: Multipliziert wird die Marktrisikoprämie, nicht die Marktrendite.",
-o:[["7,0 %","3 % + 0,8 · (8 % − 3 %) = 3 % + 4 % = 7 %."],
-["9,4 %","3 % + 0,8 · 8 %: Mit der Marktrendite statt mit der Marktrisikoprämie gerechnet."],
-["6,4 %","0,8 · 8 %: Der risikolose Zins und die Prämienbildung fehlen."],
-["8,0 %","Das ist die Marktrendite. Sie gilt nur bei β = 1."]],
-n:"β < 1: weniger systematisches Risiko als der Markt → erwartete Rendite unter der Marktrendite (Wertpapierlinie)."},
-{q:"Was misst der Beta-Faktor eines Wertpapiers?",
-h:"Unterscheide systematisches (nicht diversifizierbares) und unsystematisches Risiko. Welches wird am Kapitalmarkt vergütet?",
-o:[["Das systematische Risiko: Cov(r_i, r_M) / Var(r_M)","Nur dieses Risiko lässt sich nicht wegdiversifizieren und wird daher vergütet."],
-["Das Gesamtrisiko (Standardabweichung der Rendite)","Die Standardabweichung enthält auch das unsystematische Risiko."],
-["Das unternehmensspezifische Risiko","Es kann durch Diversifikation eliminiert werden und wird im CAPM nicht vergütet."],
-["Die Korrelation mit dem Markt","Beta = Korrelation · σ_i / σ_M. Die Korrelation allein reicht nicht aus."]],
-n:"Das Levered Beta steigt mit dem Verschuldungsgrad (Anpassung z. B. nach Modigliani/Miller oder Harris/Pringle)."},
-{q:"Bei welcher Korrelation zweier Wertpapiere ist der Diversifikationseffekt im Portfolio am größten?",
-h:"Portfoliovarianz: σ² = w₁²σ₁² + w₂²σ₂² + 2·w₁·w₂·ρ·σ₁·σ₂. Welcher Wert für ρ macht den letzten Term möglichst klein?",
-o:[["ρ = −1","Bei passender Gewichtung lässt sich das Risiko vollständig eliminieren."],
-["ρ = +1","Kein Diversifikationseffekt; das Portfoliorisiko ist der gewichtete Durchschnitt."],
-["ρ = 0","Es gibt einen Diversifikationseffekt, aber nicht den maximalen."],
-["Die Korrelation ist unerheblich","Gerade die Korrelation bestimmt den Diversifikationseffekt (Markowitz)."]],
-n:"Effizienzlinie nach Markowitz; mit risikoloser Anlage → Kapitalmarktlinie (Tobin-Separation)."},
-{q:"Anleihe: Nennwert 100, Kupon 5 % jährlich, Restlaufzeit 2 Jahre, Marktzins 4 %. Wie hoch ist der faire Kurs?",
-h:"Zinse Kupon und Tilgung mit dem Marktzins ab: 5/1,04 + 105/1,04². Liegt der Kupon über dem Marktzins, notiert die Anleihe über pari.",
-o:[["101,89","4,81 + 97,08 = 101,89 (über pari, weil Kupon > Marktzins)."],
-["100,00","Pari gilt nur, wenn Kupon und Marktzins übereinstimmen."],
-["110,00","Die Zahlungen wurden nicht abgezinst."],
-["97,08","Nur die Schlusszahlung wurde berücksichtigt, der Kupon in t1 fehlt."]],
-n:"Steigt der Marktzins, sinkt der Kurs. Die Duration misst die Zinsempfindlichkeit."},
-{q:"Long Call: Basispreis 100 €, Optionsprämie 5 €, Aktienkurs bei Fälligkeit 120 €. Wie hoch ist der Gewinn je Aktie (ohne Zinseffekte)?",
-h:"Innerer Wert bei Fälligkeit = max(S − K; 0). Davon geht die gezahlte Prämie ab.",
-o:[["15 €","max(120 − 100; 0) − 5 = 15 €."],
-["20 €","Die gezahlte Prämie fehlt."],
-["25 €","Die Prämie wurde addiert statt abgezogen."],
-["−5 €","Das wäre der Verlust, wenn die Option verfällt (S ≤ K)."]],
-n:"Break-even Long Call = Basispreis + Prämie (hier 105 €); maximaler Verlust = Prämie."}
-]},
-{ title:"Entscheidungstheorie & Statistik", icon:"🎲", qs:[
-{q:"Ergebnismatrix (Zustand s1 | s2): A1 = 100 | 40, A2 = 60 | 70, A3 = 150 | 0. Wahrscheinlichkeiten: s1 = 0,4, s2 = 0,6. Welche Alternative ist nach der Erwartungswertregel optimal?",
-h:"Erwartungswert je Alternative: Σ Wahrscheinlichkeit · Ergebnis. Dann die Alternative mit dem höchsten Wert wählen.",
-o:[["A2 (Erwartungswert 66)","A1: 0,4·100 + 0,6·40 = 64; A2: 24 + 42 = 66; A3: 60 + 0 = 60."],
-["A1 (Erwartungswert 64)","64 liegt unter dem Wert von A2."],
-["A3, weil sie das höchste Einzelergebnis bietet","Das ist die Maximax-Regel, nicht die Erwartungswertregel."],
-["Alle Alternativen sind gleichwertig","Die Erwartungswerte unterscheiden sich (64 / 66 / 60)."]],
-n:"Die μ-Regel ignoriert die Risikoeinstellung; μ-σ-Regel bzw. Bernoulli-Prinzip berücksichtigen sie."},
-{q:"Gleiche Matrix (A1 = 100 | 40, A2 = 60 | 70, A3 = 150 | 0). Welche Alternative wählt ein Entscheider nach der Hurwicz-Regel mit Optimismusparameter λ = 0,7?",
-h:"Hurwicz-Wert = λ · Zeilenmaximum + (1 − λ) · Zeilenminimum.",
-o:[["A3 (Hurwicz-Wert 105)","A1: 0,7·100 + 0,3·40 = 82; A2: 0,7·70 + 0,3·60 = 67; A3: 0,7·150 + 0,3·0 = 105."],
-["A2, weil sie das höchste Minimum hat","Das ist die Maximin-Regel (Wald), also λ = 0."],
-["A1 (Hurwicz-Wert 82)","82 liegt unter dem Wert von A3."],
-["A1, weil sie der beste Kompromiss ist","Bei λ = 0,7 hat das Maximum hohes Gewicht: A3 erreicht 105."]],
-n:"λ = 1 → Maximax; λ = 0 → Maximin (Wald)."},
-{q:"Gleiche Matrix (A1 = 100 | 40, A2 = 60 | 70, A3 = 150 | 0). Welche Alternative wird nach der Savage-Niehans-Regel (Minimax-Regret) gewählt?",
-h:"1) Spaltenmaximum je Zustand. 2) Bedauern = Spaltenmaximum − Ergebnis. 3) Je Alternative das maximale Bedauern; davon das kleinste wählen.",
-o:[["A1 (maximales Bedauern 50)","Spaltenmaxima 150 | 70. Bedauern A1: 50 | 30 → 50; A2: 90 | 0 → 90; A3: 0 | 70 → 70."],
-["A2 (Bedauern 0)","0 ist nur das Bedauern in s2. Maßgeblich ist das Zeilenmaximum (90)."],
-["A3 (Bedauern 0)","In s2 beträgt das Bedauern 70."],
-["A2, weil sie das höchste Minimum hat","Das ist die Maximin-Regel, nicht Savage-Niehans."]],
-n:"Laplace-Regel: alle Zustände gleich wahrscheinlich → Zeilendurchschnitt."},
-{q:"Ein Projekt erzielt mit je 50 % Wahrscheinlichkeit eine Rendite von 20 % oder 0 %. Wie hoch ist die Standardabweichung der Rendite?",
-h:"Erwartungswert bilden, dann Varianz = Σ p · (x − μ)². Die Standardabweichung ist die Wurzel aus der Varianz.",
-o:[["10 %-Punkte","μ = 10 %; Varianz = 0,5·10² + 0,5·10² = 100; σ = √100 = 10."],
-["100","Das ist die Varianz (in %²), nicht die Standardabweichung."],
-["20 %-Punkte","Das ist die Spannweite (20 − 0)."],
-["5 %-Punkte","Die Abweichung vom Erwartungswert beträgt in beiden Fällen 10 %-Punkte, nicht 5."]],
-n:"Variationskoeffizient = σ / μ (relatives Risikomaß)."},
-{q:"Was gibt das Bestimmtheitsmaß R² einer linearen Regression an?",
-h:"Denk an die Varianzzerlegung: Gesamtstreuung = erklärte Streuung + Reststreuung.",
-o:[["Den Anteil der Streuung der abhängigen Variable, der durch das Modell erklärt wird","R² liegt zwischen 0 und 1; bei der Einfachregression gilt R² = r²."],
-["Die Steigung der Regressionsgeraden","Das ist der Regressionskoeffizient b."],
-["Die Richtung des Zusammenhangs","R² ist immer ≥ 0. Die Richtung zeigt das Vorzeichen von r bzw. b."],
-["Die Wahrscheinlichkeit eines kausalen Zusammenhangs","Regression und Korrelation belegen keine Kausalität."]],
-n:"Anwendung im Controlling z. B. für die Kostenauflösung in fixe und variable Bestandteile."}
-]},
-{ title:"Organisation & Führung", icon:"🏗️", qs:[
-{q:"Was kennzeichnet die Matrixorganisation?",
-h:"Zähle, wie viele Weisungsbeziehungen eine Stelle hat und nach welchen Kriterien gegliedert wird.",
-o:[["Mehrliniensystem mit gleichzeitiger Gliederung nach zwei Dimensionen (z. B. Funktionen und Produkte)","Kompetenzüberschneidungen sind gewollt. Das fördert die Abstimmung, ist aber konfliktanfällig."],
-["Einliniensystem mit eindeutigem Dienstweg","Das ist die klassische Linienorganisation (Fayol)."],
-["Linienorganisation mit beratenden Stäben ohne Weisungsbefugnis","Das ist die Stab-Linien-Organisation."],
-["Gliederung allein nach Produkten mit Ergebnisverantwortung","Das ist die Sparten- bzw. divisionale Organisation."]],
-n:"Tensororganisation = Matrix mit mehr als zwei Dimensionen."},
-{q:"Was ist ein typischer Nachteil der Spartenorganisation?",
-h:"Vergleiche sie mit der funktionalen Organisation: Was wird in jeder Sparte wiederholt?",
-o:[["Mehrfachbesetzung von Funktionen und Verlust von Synergien","Jede Sparte hat eigene Funktionsbereiche, dadurch gibt es Doppelarbeit."],
-["Überlastung der Unternehmensspitze bei wachsender Diversifikation","Das ist ein Nachteil der funktionalen Organisation. Sparten entlasten die Spitze gerade."],
-["Fehlende Ergebnisverantwortung","Sparten werden häufig gerade als Profit- oder Investment-Center geführt."],
-["Kompetenzkonflikte durch doppelte Unterstellung","Das ist typisch für die Matrixorganisation."]],
-n:"Vorteile: Marktnähe, Flexibilität, klare Verantwortung; Koordination über Verrechnungspreise."},
-{q:"Sparte A liefert ein Zwischenprodukt an Sparte B. Es gibt keinen externen Markt, A hat freie Kapazitäten. Welcher Verrechnungspreis führt zu gesamtoptimalen Entscheidungen von B?",
-h:"B behandelt den Verrechnungspreis wie echte Kosten. Welche Kosten entstehen dem Gesamtunternehmen durch eine zusätzliche Einheit tatsächlich?",
-o:[["Die Grenzkosten (variablen Kosten) von A","B kalkuliert so mit den tatsächlich zusätzlich entstehenden Kosten. Nachteil: A deckt seine Fixkosten nicht."],
-["Die Vollkosten von A","Fixkosten wirken bei B wie variable Kosten. Das kann zur Ablehnung vorteilhafter Aufträge führen."],
-["Der Marktpreis","Es gibt keinen externen Markt."],
-["Vollkosten plus Gewinnzuschlag","Die Verzerrung ist noch größer als bei den Vollkosten."]],
-n:"Funktionen von Verrechnungspreisen: Koordination, Erfolgsermittlung, Vereinfachung, Steuern (Fremdvergleich)."},
-{q:"Welches Leitungs- und Überwachungssystem gilt zwingend für die deutsche Aktiengesellschaft?",
-h:"Werden Leitung und Kontrolle von getrennten Organen wahrgenommen?",
-o:[["Dualistisches System: Vorstand (Leitung) und Aufsichtsrat (Überwachung)","§§ 76, 111 AktG; Mitgliedschaft in beiden Organen ist unzulässig (§ 105 AktG)."],
-["Monistisches Board-System","In Deutschland nur für die SE wählbar (§§ 20 ff. SEAG)."],
-["Wahlrecht zwischen beiden Systemen","Ein Wahlrecht besteht nur bei der SE."],
-["Leitung durch die Hauptversammlung","Die HV hat grundsätzlich keine Geschäftsführungsbefugnis (§ 119 Abs. 2 AktG)."]],
-n:"Deutscher Corporate Governance Kodex: Entsprechenserklärung nach § 161 AktG (comply or explain)."},
-{q:"Wie ordnet Herzberg (Zwei-Faktoren-Theorie) ein angemessenes Gehalt ein?",
-h:"Herzberg unterscheidet Faktoren, die Unzufriedenheit verhindern, von Faktoren, die echte Zufriedenheit erzeugen.",
-o:[["Als Hygienefaktor: verhindert Unzufriedenheit, erzeugt aber keine dauerhafte Motivation","Weitere Hygienefaktoren: Arbeitsbedingungen, Unternehmenspolitik, Beziehungen zu Kollegen."],
-["Als Motivator","Motivatoren sind Arbeitsinhalt, Anerkennung, Verantwortung und Aufstieg."],
-["Als Selbstverwirklichungsbedürfnis","Das ist ein Begriff aus der Bedürfnispyramide von Maslow."],
-["Als Valenz im Erwartungs-Valenz-Modell","Das ist ein Begriff aus der Theorie von Vroom."]],
-n:"Inhaltstheorien (Maslow, Herzberg, McClelland) vs. Prozesstheorien (Vroom, Porter/Lawler, Adams)."}
-]},
-{ title:"Geld, Konjunktur & Außenwirtschaft", icon:"💱", qs:[
-{q:"Einfaches Geldschöpfungsmodell ohne Bargeldhaltung: Banken halten 5 % der Einlagen als Reserve. Wie hoch ist der Geldschöpfungsmultiplikator?",
-h:"Multiplikator = 1 / Reservesatz (ohne Bargeldabfluss).",
-o:[["20","1 / 0,05 = 20."],
-["5","Das ist der Reservesatz in Prozent."],
-["1,05","Hier wurde der Reservesatz zu 1 addiert."],
-["95","Das ist der Anteil, der weiterverliehen wird (in Prozent)."]],
-n:"Mit Bargeldquote c und Reservesatz r: m = (1 + c) / (c + r)."},
-{q:"Taylor-Regel: i = r* + π + 0,5 · (π − π) + 0,5 · Produktionslücke. Mit r = 1 %, π = 3 %, π* = 2 % und Produktionslücke 0 %: Welcher Leitzins ergibt sich?",
-h:"Setze schrittweise ein. Die Produktionslücke ist null, wichtig ist die Inflationslücke (π − π).",
-o:[["4,5 %","1 % + 3 % + 0,5 · 1 % + 0 = 4,5 %."],
-["4,0 %","Die Reaktion auf die Inflationslücke (0,5 · 1 %) fehlt."],
-["5,0 %","Die Inflationslücke wurde mit 1 statt 0,5 gewichtet."],
-["3,5 %","Statt der aktuellen Inflation wurde die Zielinflation eingesetzt."]],
-n:"Taylor-Prinzip: Der Nominalzins steigt stärker als die Inflation, der Realzins steigt also."},
-{q:"Land A braucht für 1 Einheit Tuch 2 h und für 1 Einheit Wein 1 h; Land B braucht für Tuch 8 h und für Wein 2 h. Wie sollten sich die Länder nach Ricardo spezialisieren?",
-h:"Berechne die Opportunitätskosten: Wie viel Wein kostet eine Einheit Tuch in jedem Land? Absolute Vorteile sind nicht entscheidend.",
-o:[["A auf Tuch, B auf Wein","Tuch kostet in A 2 Wein, in B 4 Wein. A hat den komparativen Vorteil bei Tuch, B bei Wein."],
-["A produziert beide Güter, Handel lohnt sich nicht","A hat zwar absolute Vorteile bei beiden Gütern, Handel lohnt sich dennoch wegen der komparativen Vorteile."],
-["A auf Wein, B auf Tuch","Umgekehrt: B hat bei Tuch die höheren Opportunitätskosten."],
-["Keine Spezialisierung, weil B keinen Vorteil hat","Komparative Vorteile hat jedes Land."]],
-n:"Die Terms of Trade müssen zwischen den Opportunitätskosten liegen (hier zwischen 2 und 4 Wein je Tuch)."},
-{q:"Der Euro wertet gegenüber dem US-Dollar auf (von 1,10 $ auf 1,20 $ je €). Was folgt tendenziell?",
-h:"Rechne aus Sicht eines US-Käufers: Wie viele Dollar kostet jetzt ein Produkt für 100 €?",
-o:[["Exporte aus dem Euroraum werden in Dollar teurer, Importe in Euro billiger","100 € kosten jetzt 120 $ statt 110 $. Die preisliche Wettbewerbsfähigkeit der Exporteure sinkt."],
-["Exporte werden billiger","Das wäre die Folge einer Abwertung."],
-["Importe in den Euroraum werden teurer","Für Euro-Käufer werden Dollar-Waren günstiger."],
-["Keine Wirkung auf den Außenhandel","Wechselkursänderungen verändern die relativen Preise."]],
-n:"Mengennotierung (1 € = x $) vs. Preisnotierung (1 $ = y €); J-Kurven-Effekt."},
-{q:"Ein negativer Angebotsschock (z. B. starker Ölpreisanstieg) trifft die Volkswirtschaft. Was zeigt das AS-AD-Modell kurzfristig?",
-h:"Welche Kurve verschiebt sich, in welche Richtung? Dann ablesen, was mit Preisniveau und Output passiert.",
-o:[["Preisniveau steigt, Output sinkt (Stagflation)","Die AS-Kurve verschiebt sich nach links."],
-["Preisniveau und Output steigen","Das ist ein positiver Nachfrageschock."],
-["Preisniveau sinkt, Output steigt","Das ist ein positiver Angebotsschock."],
-["Preisniveau und Output sinken","Das ist ein negativer Nachfrageschock."]],
-n:"Dilemma der Geldpolitik: Inflation bekämpfen oder Output stabilisieren."}
-]}
-],
-"Steuerrecht": [
-{ title:"Bilanzsteuerrecht", icon:"📘", qs:[
-{q:"Einzelunternehmer, Gewinn 2026: 120.000 €. Er plant 2028 die Anschaffung einer Maschine für 60.000 €. Wie hoch kann der Investitionsabzugsbetrag 2026 maximal sein?",
-h:"§ 7g Abs. 1 EStG: Prüfe die Gewinngrenze, den Prozentsatz und den Investitionszeitraum.",
-o:[["30.000 €","50 % von 60.000 €. Die Gewinngrenze (200.000 €) ist eingehalten, die Investition liegt innerhalb von 3 Jahren."],
-["24.000 €","40 % galt bis VZ 2019."],
-["60.000 €","Abziehbar sind höchstens 50 % der voraussichtlichen Anschaffungskosten."],
-["0 €","Die Gewinngrenze von 200.000 € ist nicht überschritten."]],
-n:"Summe aller IAB max. 200.000 €; im Investitionsjahr Hinzurechnung und Minderung der AK (§ 7g Abs. 2 EStG)."},
-{q:"Wie hoch ist die Sonderabschreibung nach § 7g Abs. 5 EStG für ein 2026 angeschafftes bewegliches Wirtschaftsgut (Voraussetzungen erfüllt)?",
-h:"Das Wachstumschancengesetz hat den Satz für Anschaffungen nach dem 31.12.2023 erhöht. Achte auf die Verteilung über mehrere Jahre.",
-o:[["Bis zu 40 %, verteilbar auf das Anschaffungsjahr und die vier Folgejahre","Zusätzlich zur linearen oder degressiven AfA."],
-["Bis zu 20 %","Das galt für Anschaffungen bis 31.12.2023."],
-["Bis zu 50 %","50 % ist der Satz des Investitionsabzugsbetrags (§ 7g Abs. 1 EStG)."],
-["Bis zu 30 %, nur im Anschaffungsjahr","30 % ist der Höchstsatz der degressiven AfA (§ 7 Abs. 2 EStG)."]],
-n:"Voraussetzungen u. a.: Gewinngrenze 200.000 €, (fast) ausschließlich betriebliche Nutzung (mind. 90 %)."},
-{q:"Ein Unternehmer erhält 2026 von einem fremden Dritten ein unverzinsliches Darlehen mit 5 Jahren Laufzeit. Wie ist die Verbindlichkeit in der Steuerbilanz zu bewerten?",
-h:"Das Abzinsungsgebot für Verbindlichkeiten (§ 6 Abs. 1 Nr. 3 EStG a. F.) wurde abgeschafft. Gilt das auch für Rückstellungen?",
-o:[["Mit dem Erfüllungsbetrag, ohne Abzinsung","Das Abzinsungsgebot entfällt für Wirtschaftsjahre, die nach dem 31.12.2022 enden."],
-["Abgezinst mit 5,5 %","Das war die alte Rechtslage für Verbindlichkeiten. Für Rückstellungen gilt die Abzinsung mit 5,5 % weiter (§ 6 Abs. 1 Nr. 3a Buchst. e EStG)."],
-["Abgezinst mit dem Bundesbank-Durchschnittszins","Das betrifft die Abzinsung von Rückstellungen nach HGB (§ 253 Abs. 2 HGB)."],
-["Wahlweise mit oder ohne Abzinsung","Ein steuerliches Wahlrecht besteht nicht."]],
-n:"Rückstellungen steuerlich: Wertverhältnisse am Stichtag, keine künftigen Preissteigerungen (§ 6 Abs. 1 Nr. 3a Buchst. f EStG)."},
-{q:"Ein Einzelunternehmer veräußert Grund und Boden des Betriebsvermögens mit hohem Gewinn. Wie lange muss das Grundstück mindestens zum Anlagevermögen gehört haben, damit § 6b EStG anwendbar ist?",
-h:"Unterscheide die Vorbesitzzeit (vor der Veräußerung) von der Reinvestitionsfrist (nach der Veräußerung).",
-o:[["6 Jahre ununterbrochen","§ 6b Abs. 4 S. 1 Nr. 2 EStG."],
-["4 Jahre","Das ist die Reinvestitionsfrist für die Rücklage (6 Jahre bei neu hergestellten Gebäuden)."],
-["10 Jahre","Das ist die Frist für private Grundstücksveräußerungen (§ 23 EStG)."],
-["1 Jahr","Diese Frist gibt es bei § 6b EStG nicht."]],
-n:"Wird die Rücklage nicht übertragen: gewinnerhöhende Auflösung mit Gewinnzuschlag von 6 % je Wirtschaftsjahr (§ 6b Abs. 7 EStG)."},
-{q:"Ein Einzelunternehmer hält börsennotierte Aktien im Anlagevermögen (AK 100 €/Stück). Am Bilanzstichtag notieren sie bei 90 €. Was gilt steuerlich?",
-h:"Wann gilt bei börsennotierten Aktien eine Wertminderung als voraussichtlich dauernd (BFH/BMF)? Ist die Teilwertabschreibung steuerlich Pflicht oder Wahlrecht?",
-o:[["Teilwertabschreibung auf 90 € zulässig (Wahlrecht), da der Kursverlust die Bagatellgrenze von 5 % übersteigt","BFH-Rechtsprechung und BMF: Ein Kursrückgang über 5 % am Stichtag gilt als dauernd."],
-["Teilwertabschreibung zwingend wegen Maßgeblichkeit","Steuerlich besteht ein eigenständiges Wahlrecht (§ 6 Abs. 1 Nr. 2 S. 2, § 5 Abs. 1 S. 1 Hs. 2 EStG)."],
-["Keine Abschreibung, Kursschwankungen sind immer vorübergehend","Bei börsennotierten Aktien gilt die 5 %-Grenze."],
-["Abschreibung erst ab 40 % Kursverlust","Diese Schwelle gibt es nicht."]],
-n:"Teileinkünfteverfahren: Die Abschreibung wirkt nur zu 60 % (§ 3c Abs. 2 EStG); bei Körperschaften gar nicht (§ 8b Abs. 3 KStG)."}
-]},
-{ title:"Personengesellschaften", icon:"👥", qs:[
-{q:"Kommanditist K erhält von der KG ein angemessenes Geschäftsführergehalt von 60.000 €. Wie ist das steuerlich zu behandeln?",
-h:"§ 15 Abs. 1 S. 1 Nr. 2 EStG: Was gilt für Vergütungen, die ein Mitunternehmer von der Gesellschaft für seine Tätigkeit bezieht?",
-o:[["Sondervergütung: Einkünfte aus Gewerbebetrieb, die den steuerlichen Gesamtgewinn nicht mindern","Der Aufwand in der Gesamthandsbilanz wird durch den Ertrag im Sonderbereich neutralisiert. Folge: auch gewerbesteuerpflichtig."],
-["Einkünfte aus nichtselbständiger Arbeit (§ 19 EStG)","Bei Mitunternehmern geht § 15 Abs. 1 S. 1 Nr. 2 EStG vor."],
-["Betriebsausgabe, die den Gewinn endgültig mindert","Gesamtgewinn = Gesamthandsergebnis + Sonderbilanzergebnisse."],
-["Nicht steuerbar, weil das Gehalt angemessen ist","Die Angemessenheit ist bei der vGA relevant, nicht hier."]],
-n:"Zweistufige Gewinnermittlung: 1. Gesamthandsbilanz (inkl. Ergänzungsbilanzen), 2. Sonderbilanzen."},
-{q:"Gesellschafter G vermietet ein ihm gehörendes Grundstück an die KG, die es als Lager nutzt. Wie ist das Grundstück steuerlich zu qualifizieren?",
-h:"Unterscheide Gesamthandsvermögen, SBV I (dient der Gesellschaft unmittelbar) und SBV II (stärkt die Beteiligung).",
-o:[["Notwendiges Sonderbetriebsvermögen I","Das Grundstück dient unmittelbar dem Betrieb der KG. Die Mieten sind Sondervergütungen."],
-["Privatvermögen; Mieten = Einkünfte aus V+V","Bei Mitunternehmern gehen die gewerblichen Einkünfte vor."],
-["Gesamthandsvermögen der KG","Eigentümer ist G, nicht die KG."],
-["Sonderbetriebsvermögen II","SBV II stärkt die Beteiligung, z. B. Anteile an der Komplementär-GmbH."]],
-n:"Übertragungen zwischen SBV und Gesamthand: Buchwertfortführung nach § 6 Abs. 5 S. 3 EStG (Sperrfristen!)."},
-{q:"Kommanditist K hat seine Einlage von 50.000 € voll eingezahlt (Kapitalkonto 50.000 €). Sein Verlustanteil 2026 beträgt 80.000 €. Wie ist der Verlust zu behandeln?",
-h:"§ 15a EStG: Ausgleichsfähig nur, soweit kein negatives Kapitalkonto entsteht oder sich erhöht. Der Rest ist nur mit späteren Gewinnen aus derselben Beteiligung verrechenbar.",
-o:[["50.000 € ausgleichsfähig, 30.000 € verrechenbar","Das Kapitalkonto sinkt auf 0. Der Rest wird gesondert festgestellt und mit künftigen Gewinnanteilen verrechnet."],
-["80.000 € voll ausgleichsfähig","Dann entstünde ein negatives Kapitalkonto von −30.000 €."],
-["30.000 € ausgleichsfähig, 50.000 € verrechenbar","Die Aufteilung ist vertauscht."],
-["Überhaupt nicht ausgleichsfähig","Bis zur Höhe des Kapitalkontos ist der Verlust ausgleichsfähig."]],
-n:"Erweiterter Verlustausgleich bei überschießender Außenhaftung (§ 15a Abs. 1 S. 2 EStG, § 171 HGB)."},
-{q:"Wie hoch ist im VZ 2026 der Steuersatz für den begünstigt besteuerten nicht entnommenen Gewinn nach § 34a EStG?",
-h:"Unterscheide den Thesaurierungssatz vom Nachversteuerungssatz.",
-o:[["28,25 % (zzgl. SolZ)","Ziel: eine Belastung annähernd wie bei Kapitalgesellschaften."],
-["25 %","25 % ist der Nachversteuerungssatz bei späterer Entnahme."],
-["15 %","15 % ist der Körperschaftsteuersatz."],
-["42 %","Das ist der reguläre Spitzensteuersatz."]],
-n:"Antrag je Betrieb bzw. Mitunternehmeranteil; bei Mitunternehmern: Anteil > 10 % oder Gewinnanteil > 10.000 €."},
-{q:"Eine KG optiert nach § 1a KStG zur Körperschaftsbesteuerung. Was ist die Folge?",
-h:"Ändert sich die Rechtsform zivilrechtlich? Wie wird der Übergang steuerlich fingiert?",
-o:[["Die KG wird ertragsteuerlich wie eine Kapitalgesellschaft behandelt; der Übergang gilt als Formwechsel (§ 1a Abs. 2 KStG i.V.m. § 25 UmwStG)","Die Gesellschafter werden wie Anteilseigner besteuert; Geschäftsführergehälter werden zu Arbeitslohn."],
-["Die KG wird zivilrechtlich zur GmbH","Die Option wirkt nur steuerlich."],
-["Nur die Gewerbesteuer entfällt","Die Gesellschaft bleibt gewerbesteuerpflichtig."],
-["Die Gesellschafter versteuern den Gewinn weiter direkt nach § 15 EStG","Genau das entfällt. Ausschüttungen sind dann Kapitaleinkünfte."]],
-n:"Antrag spätestens einen Monat vor Beginn des Wirtschaftsjahres, ab dem die Option gelten soll."}
-]},
-{ title:"Verluste & Mindestbesteuerung", icon:"📉", qs:[
-{q:"Eine GmbH hat 2026 ein Einkommen vor Verlustabzug von 3 Mio. € und einen Verlustvortrag von 5 Mio. €. Wie hoch ist der Verlustabzug?",
-h:"§ 10d Abs. 2 EStG i.V.m. § 8 Abs. 1 KStG: Sockelbetrag 1 Mio. € unbeschränkt, darüber nur ein Prozentsatz. Für VZ 2024 bis 2027 gilt ein erhöhter Satz.",
-o:[["2,4 Mio. € (1 Mio. € + 70 % von 2 Mio. €)","Es verbleibt ein Einkommen von 0,6 Mio. €; 2,6 Mio. € werden weiter vorgetragen."],
-["2,2 Mio. € (1 Mio. € + 60 % von 2 Mio. €)","60 % gilt wieder ab VZ 2028 und bei der Gewerbesteuer."],
-["3 Mio. €","Unbeschränkter Abzug. Die Mindestbesteuerung begrenzt ihn aber."],
-["1 Mio. €","Über den Sockelbetrag hinaus sind weitere 70 % abziehbar."]],
-n:"Einkommensteuer bei Zusammenveranlagung: Sockelbetrag 2 Mio. €."},
-{q:"Gleiche GmbH: Gewerbeertrag 3 Mio. €, vortragsfähiger Fehlbetrag 5 Mio. €. Um wie viel wird der Gewerbeertrag 2026 gekürzt?",
-h:"§ 10a GewStG hat eine eigene Mindestbesteuerung. Wurde die befristete Erhöhung auf 70 % übernommen?",
-o:[["2,2 Mio. € (1 Mio. € + 60 % von 2 Mio. €)","§ 10a S. 1 und 2 GewStG: Die Erhöhung auf 70 % gilt nur für ESt und KSt."],
-["2,4 Mio. €","Die 70 % aus § 10d EStG gelten nicht für die Gewerbesteuer."],
-["3 Mio. €","Die Mindestbesteuerung gilt auch bei der Gewerbesteuer."],
-["0 €, es gibt keinen gewerbesteuerlichen Verlustabzug","Es gibt den Vortrag nach § 10a GewStG, nur keinen Rücktrag."]],
-n:"Ein Verlustrücktrag ist bei der Gewerbesteuer ausgeschlossen."},
-{q:"Bis zu welchem Betrag ist ein Verlustrücktrag bei der Einkommensteuer (Einzelveranlagung) für Verluste ab VZ 2024 möglich?",
-h:"In der Corona-Zeit wurden die Höchstbeträge befristet stark angehoben. Was gilt danach?",
-o:[["1 Mio. €","§ 10d Abs. 1 EStG; bei Zusammenveranlagung 2 Mio. €."],
-["10 Mio. €","Dieser Wert galt befristet für die VZ 2020 bis 2023."],
-["511.500 €","Dieser Wert galt bis VZ 2012."],
-["Unbegrenzt","Der Rücktrag ist betragsmäßig begrenzt."]],
-n:"Auf Antrag kann ganz oder teilweise auf den Rücktrag verzichtet werden (§ 10d Abs. 1 EStG)."},
-{q:"Ein Arbeitnehmer erzielt 2026 Einkünfte aus § 19 EStG von 80.000 € und einen Verlust aus Vermietung und Verpachtung von 20.000 €. Was gilt?",
-h:"Unterscheide Verlustausgleich (im selben Jahr) und Verlustabzug (Rück- und Vortrag). Gibt es für V+V eine Ausgleichsbeschränkung?",
-o:[["Uneingeschränkter Ausgleich mit den Einkünften aus § 19: Summe der Einkünfte 60.000 €","Der vertikale Verlustausgleich ist grundsätzlich unbeschränkt."],
-["Ausgleich nur mit künftigen V+V-Gewinnen","Solche Beschränkungen gibt es z. B. bei § 15a oder § 23 Abs. 3 EStG, nicht bei V+V."],
-["Ausgleich nur zu 60 %","Die Mindestbesteuerung betrifft nur den Verlustabzug über 1 Mio. €."],
-["Kein Ausgleich, V+V-Verluste zählen nicht","Bei Einkünfteerzielungsabsicht werden V+V-Verluste anerkannt."]],
-n:"Verrechnungsbeschränkungen u. a.: §§ 15 Abs. 4, 15a, 15b, 20 Abs. 6, 22 Nr. 3, 23 Abs. 3 EStG."},
-{q:"Ein Steuerpflichtiger erzielt 2026 einen Verlust aus einem privaten Veräußerungsgeschäft (§ 23 EStG) von 5.000 €. Womit darf er ihn verrechnen?",
-h:"§ 23 Abs. 3 EStG enthält eine eigene Verlustverrechnungsbeschränkung.",
-o:[["Nur mit Gewinnen aus privaten Veräußerungsgeschäften (gleiches Jahr, Vorjahr oder Folgejahre)","Ein Ausgleich mit anderen Einkunftsarten ist ausgeschlossen."],
-["Mit allen positiven Einkünften desselben Jahres","Der Verlust unterliegt der Beschränkung nach § 23 Abs. 3 EStG."],
-["Nur mit Einkünften aus Kapitalvermögen","Kapitalverluste haben einen eigenen Verrechnungskreis (§ 20 Abs. 6 EStG)."],
-["Gar nicht","Die Verluste werden innerhalb von § 23 EStG berücksichtigt und gesondert festgestellt."]],
-n:"Freigrenze für Gewinne aus § 23 EStG: 1.000 € (ab VZ 2024)."}
-]},
-{ title:"ESt: Tarif & Familie", icon:"👨‍👩‍👧", qs:[
-{q:"Wie hoch ist das Kindergeld je Kind im Jahr 2026?",
-h:"Kindergeld und Kinderfreibetrag werden regelmäßig angehoben. Achte auf das Jahr.",
-o:[["259 € monatlich","Anhebung um 4 € gegenüber 2025."],
-["255 €","Das war der Wert für 2025."],
-["250 €","Das war der Wert für 2023 und 2024."],
-["219 €","Das war der Wert für das 1. und 2. Kind in 2021 und 2022."]],
-n:"Günstigerprüfung (§ 31 EStG): Das Finanzamt prüft, ob die Freibeträge günstiger sind als das Kindergeld."},
-{q:"Wie hoch sind 2026 Kinderfreibetrag und BEA-Freibetrag zusammen für ein Kind bei zusammenveranlagten Eltern?",
-h:"Je Elternteil gibt es zwei Freibeträge: Kinderfreibetrag (sächliches Existenzminimum) und BEA-Freibetrag (Betreuung, Erziehung, Ausbildung).",
-o:[["9.756 €","2 × 3.414 € Kinderfreibetrag + 2 × 1.464 € BEA-Freibetrag."],
-["9.600 €","Das war der Wert für 2025."],
-["6.828 €","Nur der Kinderfreibetrag. Der BEA-Freibetrag fehlt."],
-["4.878 €","Das ist der Betrag je Elternteil."]],
-n:"§ 32 Abs. 6 EStG."},
-{q:"Welcher Grenzsteuersatz gilt in der obersten Tarifzone der Einkommensteuer („Reichensteuer“)?",
-h:"Der Tarif nach § 32a EStG hat fünf Zonen. Gefragt ist der Satz ohne SolZ.",
-o:[["45 %","Die Zone beginnt bei 277.826 € zvE (Einzelveranlagung); dieser Eckwert wurde 2026 nicht angepasst."],
-["42 %","Das ist der Spitzensteuersatz der vorletzten Tarifzone."],
-["47,475 %","Das ist der Satz inklusive 5,5 % SolZ."],
-["14 %","Das ist der Eingangssteuersatz."]],
-n:"Grenzsteuersatz ≠ Durchschnittssteuersatz."},
-{q:"Handwerkerrechnung im eigenen Haushalt: 8.000 € (davon Arbeitskosten 5.000 €, Material 3.000 €), unbar bezahlt. Wie hoch ist die Steuerermäßigung nach § 35a EStG?",
-h:"§ 35a Abs. 3 EStG: Welche Kosten sind begünstigt? Wie hoch sind Satz und Höchstbetrag?",
-o:[["1.000 €","20 % der Arbeitskosten (5.000 €). Der Höchstbetrag von 1.200 € ist nicht erreicht."],
-["1.600 €","20 % der Gesamtrechnung. Material ist nicht begünstigt."],
-["1.200 €","Das ist der Höchstbetrag. Er wird erst ab 6.000 € Arbeitskosten erreicht."],
-["5.000 € Abzug von den Einkünften","§ 35a EStG mindert die Steuer direkt, nicht die Einkünfte."]],
-n:"Haushaltsnahe Dienstleistungen: 20 %, max. 4.000 € (§ 35a Abs. 2 EStG). Rechnung und unbare Zahlung erforderlich."},
-{q:"Welche Aussage zur seit 2026 geltenden Aktivrente trifft zu?",
-h:"Für wen gilt die Begünstigung, ab welchem Alter, für welche Einkünfte?",
-o:[["Arbeitslohn aus sozialversicherungspflichtiger Beschäftigung nach Erreichen der Regelaltersgrenze ist bis 2.000 € monatlich steuerfrei","Jahreshöchstbetrag damit 24.000 €."],
-["Sie gilt auch für Selbständige im Rentenalter","Selbständige sind ausgenommen."],
-["Sie gilt ab dem 63. Lebensjahr","Maßgeblich ist das Erreichen der Regelaltersgrenze."],
-["Sie gilt vor allem für Minijobs","Minijobs sind ausgenommen."]],
-n:"Die Rente selbst bleibt nach § 22 EStG steuerpflichtig."}
-]}
-]
-};
-/* ======================= KLAUSURFÄLLE ======================= /
-const PLUS_CASES = [
-{ id:"bwl-engpass", area:"BWL / VWL", icon:"🏭", title:"Engpass & Zusatzauftrag", topic:"Kosten- und Leistungsrechnung",
-sv:`Die Muster GmbH fertigt die Produkte X und Y auf einer Spezialmaschine. Die Maschinenkapazität beträgt <b>8.000 Minuten pro Monat</b>, die monatlichen Fixkosten <b>20.000 €</b>.
-<table><tr><th></th><th>X</th><th>Y</th></tr>
-<tr><td>Preis je Stück</td><td>100 €</td><td>80 €</td></tr>
-<tr><td>Variable Stückkosten</td><td>60 €</td><td>50 €</td></tr>
-<tr><td>Fertigungszeit je Stück</td><td>10 min</td><td>5 min</td></tr>
-<tr><td>Absatzhöchstmenge/Monat</td><td>600 Stück</td><td>800 Stück</td></tr></table>
-Später fragt ein Kunde einmalig <b>100 Stück</b> des Sonderprodukts Z an (variable Stückkosten 45 €, Fertigungszeit 4 min/Stück).`,
-steps:[
-{q:"Liegt bei der Maschine ein Engpass vor?",
-h:"Berechne den Kapazitätsbedarf für die Absatzhöchstmengen (Menge × Fertigungszeit) und vergleiche ihn mit der Kapazität.",
-o:[["Ja: Der Bedarf von 10.000 min übersteigt die Kapazität von 8.000 min","X: 600 · 10 = 6.000 min; Y: 800 · 5 = 4.000 min; Summe 10.000 min."],
-["Nein: Der Bedarf beträgt nur 6.000 min","Hier wurde nur X berücksichtigt."],
-["Nein: 1.400 Stück sind problemlos machbar","Stückzahlen verschiedener Produkte kann man nicht addieren. Maßgeblich sind Minuten."],
-["Ja, aber nur für Produkt Y","Der Engpass betrifft die Maschine und damit beide Produkte."]],
-n:"Ohne Engpass: alle Produkte mit positivem Stück-DB bis zur Absatzgrenze fertigen."},
-{q:"In welcher Reihenfolge sollten die Produkte gefertigt werden?",
-h:"Stück-DB je Produkt bilden und durch die Engpassminuten teilen (relativer DB).",
-o:[["Zuerst Y (6 €/min), dann X (4 €/min)","DB X = 40 € / 10 min = 4 €/min; DB Y = 30 € / 5 min = 6 €/min."],
-["Zuerst X, weil der Stück-DB höher ist (40 € > 30 €)","Der absolute DB ist nur ohne Engpass maßgeblich."],
-["Zuerst X, weil der Preis höher ist","Preise sind kein Entscheidungskriterium, nur Deckungsbeiträge."],
-["Beide gleichrangig","Die relativen DB unterscheiden sich deutlich."]],
-n:"Relativer DB = Stück-DB / Engpassbeanspruchung je Stück."},
-{q:"Wie sieht das optimale Produktionsprogramm aus?",
-h:"Fertige das bessere Produkt bis zur Absatzhöchstmenge und fülle die Restkapazität mit dem anderen auf.",
-o:[["800 Y und 400 X","Y: 800 · 5 = 4.000 min; Restkapazität 4.000 min / 10 min = 400 X."],
-["600 X und 400 Y","Das ist die Reihenfolge nach absolutem DB (X zuerst)."],
-["800 Y und 600 X","Damit würde die Kapazität um 2.000 min überschritten."],
-["1.600 Y","Die Absatzhöchstmenge von Y (800 Stück) wurde ignoriert."]]},
-{q:"Wie hoch ist das monatliche Betriebsergebnis beim optimalen Programm?",
-h:"Gesamt-DB = Σ Menge × Stück-DB; davon die Fixkosten abziehen.",
-o:[["20.000 €","800 · 30 € + 400 · 40 € = 40.000 € DB − 20.000 € Fixkosten."],
-["40.000 €","Das ist der Deckungsbeitrag. Die Fixkosten fehlen."],
-["16.000 €","Das wäre das Ergebnis bei 600 X / 400 Y (36.000 € − 20.000 €), also 4.000 € schlechter."],
-["28.000 €","Hier wurde die Kapazitätsgrenze ignoriert (48.000 € − 20.000 €)."]]},
-{q:"Wie hoch ist die Preisuntergrenze je Stück für den Zusatzauftrag Z?",
-h:"Z belegt den Engpass und verdrängt das schlechteste Produkt im Programm (X). Preisuntergrenze = variable Kosten + entgangener DB der belegten Engpassminuten.",
-o:[["61 €","45 € + 4 min · 4 €/min (relativer DB von X) = 61 €."],
-["45 €","Die variablen Kosten allein reichen nur bei freier Kapazität."],
-["69 €","Hier wurde mit dem relativen DB von Y (6 €/min) bewertet. Verdrängt wird aber das schlechteste Produkt X."],
-["85 €","45 € + voller DB eines X (40 €). Ein Z belegt aber nur 4 min, also 0,4 X."]],
-n:"Bietet der Kunde z. B. 70 €, lohnt sich Z: +9 € je Stück, also +900 € für 100 Stück."}
-]},
-{ id:"bwl-invest", area:"BWL / VWL", icon:"💹", title:"Investitionsentscheidung", topic:"Investitionsrechnung",
-sv:`Die Alpha AG prüft den Kauf einer Anlage. Anschaffungsauszahlung in t0: <b>100.000 €</b>. Nutzungsdauer 3 Jahre, kein Restwert. Kalkulationszinssatz: <b>8 %</b>.
-<table><tr><th>Jahr</th><th>t1</th><th>t2</th><th>t3</th></tr>
-<tr><td>Einzahlungsüberschuss</td><td>40.000 €</td><td>50.000 €</td><td>30.000 €</td></tr>
-<tr><td>Abzinsungsfaktor 8 %</td><td>0,925926</td><td>0,857339</td><td>0,793832</td></tr></table>`,
-steps:[
-{q:"Wie hoch ist der Barwert aller Einzahlungsüberschüsse?",
-h:"Multipliziere jeden Einzahlungsüberschuss mit dem Abzinsungsfaktor seines Jahres und addiere.",
-o:[["103.718,95 €","37.037,04 + 42.866,95 + 23.814,96 = 103.718,95 €."],
-["120.000,00 €","Die Zahlungen wurden nicht abgezinst."],
-["111.111,11 €","Alle Zahlungen wurden nur mit einer Periode abgezinst (120.000 / 1,08)."],
-["95.259,84 €","Alle Zahlungen wurden mit dem Faktor für t3 abgezinst."]]},
-{q:"Wie hoch ist der Kapitalwert der Investition?",
-h:"Kapitalwert = Barwert der Einzahlungsüberschüsse − Anschaffungsauszahlung.",
-o:[["3.718,95 €","103.718,95 € − 100.000 € = 3.718,95 € > 0 → vorteilhaft."],
-["20.000,00 €","Das ist der undiskontierte Überschuss (120.000 € − 100.000 €)."],
-["103.718,95 €","Die Anschaffungsauszahlung wurde nicht abgezogen."],
-["−3.718,95 €","Das Vorzeichen ist falsch: Der Barwert liegt über der Auszahlung."]],
-n:"KW > 0: Die Investition verzinst sich zu mehr als 8 % und erwirtschaftet zusätzlich einen Überschuss."},
-{q:"Wie hoch ist die Annuität der Investition?",
-h:"Annuität = Kapitalwert × Kapitalwiedergewinnungsfaktor (KWF). KWF = i · q^n / (q^n − 1); für 8 % und 3 Jahre ≈ 0,388034.",
-o:[["1.443,08 €","3.718,95 € × 0,388034 = 1.443,08 € je Jahr."],
-["1.239,65 €","Hier wurde der Kapitalwert durch 3 geteilt. Die Zinsen fehlen."],
-["1.145,56 €","Das ist der Restwertverteilungsfaktor (0,308034). Er verteilt einen Endwert, keinen Barwert."],
-["297,52 €","KW × 8 % ist die Annuität einer ewigen Rente, nicht über 3 Jahre."]]},
-{q:"Wie lang ist die statische Amortisationsdauer nach der Kumulationsmethode?",
-h:"Addiere die (nicht abgezinsten) Rückflüsse Jahr für Jahr, bis 100.000 € erreicht sind. Den Rest im letzten Jahr anteilig berechnen.",
-o:[["2,33 Jahre","Nach t2: 90.000 €; fehlende 10.000 € / 30.000 € = 0,33 → 2,33 Jahre."],
-["2,50 Jahre","Das ist die Durchschnittsmethode (100.000 / 40.000 €). Sie ist bei schwankenden Rückflüssen ungenau."],
-["2,84 Jahre","Das ist die dynamische Amortisationsdauer (mit Barwerten)."],
-["3,00 Jahre","Die Amortisation wird im Laufe von Jahr 3 erreicht, nicht erst an dessen Ende."]],
-n:"Die Amortisationsdauer ist ein Risikomaß, kein Rentabilitätskriterium."},
-{q:"Was lässt sich ohne weitere Rechnung über den internen Zinsfuß sagen?",
-h:"Wie verläuft die Kapitalwertfunktion einer Normalinvestition in Abhängigkeit vom Zins? Wo ist der Kapitalwert null?",
-o:[["Er liegt über 8 %, weil der Kapitalwert bei 8 % positiv ist und mit steigendem Zins sinkt","Die Kapitalwertfunktion fällt monoton; der Nullpunkt liegt hier bei ca. 10,1 %."],
-["Er liegt unter 8 %","Dann wäre der Kapitalwert bei 8 % negativ."],
-["Er beträgt genau 8 %","Dann wäre der Kapitalwert bei 8 % null."],
-["Ohne Interpolation ist keine Aussage möglich","Die Richtung folgt bereits aus dem Vorzeichen des Kapitalwerts."]],
-n:"Bei Normalinvestitionen gilt: KW > 0 ⇔ IZF > Kalkulationszins."}
-]},
-{ id:"bwl-leverage", area:"BWL / VWL", icon:"🏦", title:"Finanzierungsalternativen & Leverage", topic:"Finanzierung",
-sv:`Die Beta GmbH hat ein Gesamtkapital von <b>1.000.000 €</b> (Eigenkapital 600.000 €, Fremdkapital 400.000 € zu 5 %). Das EBIT beträgt <b>120.000 €</b>. Ertragsteuersatz vereinfachend <b>30 %</b> auf das EBT.<br><br>
-Geplant ist eine Erweiterungsinvestition von <b>500.000 €</b>, die das EBIT um <b>60.000 €</b> erhöht. Finanzierung wahlweise:<br>
-• <b>Variante A:</b> Kapitalerhöhung um 500.000 €<br>
-• <b>Variante B:</b> Bankdarlehen über 500.000 € zu 6 %`,
-steps:[
-{q:"Wie hoch ist die Gesamtkapitalrendite (EBIT / Gesamtkapital) vor der Investition?",
-h:"Setze das EBIT ins Verhältnis zum gesamten eingesetzten Kapital.",
-o:[["12 %","120.000 € / 1.000.000 € = 12 %."],
-["20 %","120.000 € / 600.000 € bezieht das EBIT nur auf das Eigenkapital."],
-["8,4 %","Das EBIT nach Steuern (84.000 €) entspricht nicht der gefragten Kennzahl."],
-["10 %","Das ist EBT / Gesamtkapital; die Zinsen gehören aber zur Kapitalrendite."]]},
-{q:"Wie hoch ist die Eigenkapitalrendite nach Steuern vor der Investition?",
-h:"EBT = EBIT − Zinsen; Jahresüberschuss = EBT · (1 − 30 %); dann durch das Eigenkapital teilen.",
-o:[["11,67 %","EBT 100.000 €; JÜ 70.000 € / 600.000 € = 11,67 %."],
-["20,00 %","EBIT / EK. Zinsen und Steuern fehlen."],
-["16,67 %","Das ist die EK-Rendite vor Steuern (100.000 / 600.000)."],
-["7,00 %","Hier wurde der JÜ auf das Gesamtkapital bezogen."]]},
-{q:"Wie hoch ist die Eigenkapitalrendite nach Steuern bei Variante B (Darlehen)?",
-h:"Neues EBIT 180.000 €. Zinsen: Altdarlehen 20.000 € + Neudarlehen 30.000 €. Eigenkapital bleibt 600.000 €.",
-o:[["15,17 %","EBT 130.000 €; JÜ 91.000 € / 600.000 € = 15,17 %. Der Leverage-Effekt wirkt positiv."],
-["21,67 %","Das ist die EK-Rendite vor Steuern (130.000 / 600.000)."],
-["8,27 %","Hier wurde durch 1,1 Mio. € geteilt; das Eigenkapital steigt bei B aber nicht."],
-["10,18 %","Das ist das Ergebnis von Variante A."]]},
-{q:"Wie hoch ist die Eigenkapitalrendite nach Steuern bei Variante A (Kapitalerhöhung)?",
-h:"Neues EBIT 180.000 €, nur die Altzinsen (20.000 €). Eigenkapital steigt auf 1.100.000 €.",
-o:[["10,18 %","EBT 160.000 €; JÜ 112.000 € / 1.100.000 € = 10,18 %."],
-["18,67 %","Hier wurde durch das alte EK (600.000 €) geteilt; das EK steigt aber um 500.000 €."],
-["14,55 %","Das ist die EK-Rendite vor Steuern (160.000 / 1.100.000)."],
-["15,17 %","Das ist das Ergebnis von Variante B."]],
-n:"Die Gesamtkapitalrendite der Investition (60.000 / 500.000 = 12 %) liegt über dem Zins von 6 %. Deshalb lohnt sich die Fremdfinanzierung."},
-{q:"Ab welchem Gesamt-EBIT (nach Investition) ist Variante B für die Eigenkapitalrendite vorteilhafter als A?",
-h:"Setze die EK-Renditen gleich: (EBIT − 20.000) · 0,7 / 1.100.000 = (EBIT − 50.000) · 0,7 / 600.000. Der Steuerfaktor kürzt sich heraus.",
-o:[["Bei einem EBIT über 86.000 €","600.000 · (EBIT − 20.000) = 1.100.000 · (EBIT − 50.000) → EBIT = 86.000 €. Darüber wirkt der Leverage-Effekt positiv."],
-["Über 90.000 € (6 % von 1,5 Mio. €)","Das ignoriert, dass das Altdarlehen nur 5 % kostet."],
-["Über 75.000 € (5 % von 1,5 Mio. €)","Das ignoriert die höheren Zinsen des Neukredits."],
-["Über 180.000 €","Das ist das geplante EBIT, nicht die Indifferenzschwelle."]],
-n:"Das geplante EBIT von 180.000 € liegt deutlich über 86.000 €, also ist B vorteilhaft, aber mit höherem Risiko (Leverage-Risiko, Kapitaldienst)."}
-]},
-{ id:"st-gmbh", area:"Steuerrecht", icon:"🏢", title:"GmbH: Einkommen, KSt & GewSt", topic:"Körperschaft- & Gewerbesteuer",
-sv:`Die X-GmbH (Wirtschaftsjahr = Kalenderjahr 2026, Hebesatz <b>400 %</b>) weist einen <b>Steuerbilanzgewinn von 500.000 €</b> aus. Ertragsteuern sind noch nicht als Aufwand erfasst. Darin enthalten:<br>
-Dividende der Y-GmbH (Beteiligung seit Jahren <b>20 %</b>): <b>100.000 €</b> Ertrag<br>
-Geschäftliche Bewirtung von Kunden: <b>10.000 €</b> Aufwand (angemessen, nachgewiesen)<br>
-Bußgeld einer deutschen Behörde: <b>5.000 €</b> Aufwand<br>
-Gehalt des Gesellschafter-Geschäftsführers: davon <b>20.000 €</b> unangemessen<br>
-Zinsaufwand <b>300.000 €</b>; Miete für eine Lagerhalle <b>100.000 €</b><br><br>
-Kapitalertragsteuer und weitere Besonderheiten bleiben außer Betracht.`,
-steps:[
-{q:"Wie wirkt sich die Dividende (Nr. 1) auf das Einkommen aus?",
-h:"§ 8b Abs. 1 KStG (Beteiligung ≥ 10 %, also kein Streubesitz) und § 8b Abs. 5 KStG (5 % gelten als nicht abziehbare Betriebsausgaben).",
-o:[["Minderung um 95.000 € (−100.000 € nach § 8b Abs. 1, +5.000 € nach § 8b Abs. 5 KStG)","Im Ergebnis sind 95 % steuerfrei."],
-["Minderung um 100.000 €","Die 5 %-Fiktion nach § 8b Abs. 5 KStG fehlt."],
-["Minderung um 40.000 €","Das Teileinkünfteverfahren gilt nur für natürliche Personen."],
-["Keine Korrektur","Die Beteiligung liegt über 10 %, also greift § 8b Abs. 1 KStG."]],
-n:"Unter 10 % (Streubesitz, § 8b Abs. 4 KStG): voll steuerpflichtig."},
-{q:"Welche außerbilanziellen Hinzurechnungen ergeben sich aus Nr. 2 bis 4?",
-2: § 4 Abs. 5 S. 1 Nr. 2 EStG (nur 70 % abziehbar). Nr. 3: § 4 Abs. 5 S. 1 Nr. 8 EStG. Nr. 4: vGA nach § 8 Abs. 3 S. 2 KStG. Die EStG-Normen gelten über § 8 Abs. 1 KStG.",
-o:[["28.000 € (3.000 € + 5.000 € + 20.000 €)","30 % der Bewirtung, das volle Bußgeld und die vGA."],
-["35.000 €","Die Bewirtungskosten wurden voll statt zu 30 % hinzugerechnet."],
-["23.000 €","Das Bußgeld fehlt, es ist nicht abziehbar."],
-["8.000 €","Die vGA fehlt; sie ist außerbilanziell hinzuzurechnen."]]},
-{q:"Wie hoch ist das zu versteuernde Einkommen?",
-h:"Steuerbilanzgewinn ± Ergebnisse aus Schritt 1 und 2.",
-o:[["433.000 €","500.000 € − 95.000 € + 28.000 € = 433.000 €."],
-["428.000 €","Die 5.000 € nach § 8b Abs. 5 KStG fehlen."],
-["405.000 €","Die Hinzurechnungen aus Schritt 2 fehlen."],
-["533.000 €","Die Dividende wurde nicht gekürzt, nur die 5 % hinzugerechnet."]]},
-{q:"Wie hoch sind Körperschaftsteuer und Solidaritätszuschlag zusammen?",
-h:"KSt = 15 % des Einkommens (§ 23 KStG). SolZ = 5,5 % der KSt.",
-o:[["68.522,25 €","KSt 64.950 € + SolZ 3.572,25 €."],
-["64.950,00 €","Der Solidaritätszuschlag fehlt."],
-["79.125,00 €","Gerechnet wurde auf den Steuerbilanzgewinn statt auf das Einkommen."],
-["88.765,00 €","Der SolZ beträgt 5,5 % der KSt, nicht 5,5 % des Einkommens."]]},
-{q:"Wie hoch ist die Gewerbesteuer?",
-h:"Gewerbeertrag = Gewinn nach KStG (433.000 €) + Hinzurechnung § 8 Nr. 1 GewStG (Zinsen 100 %, Immobilienmiete 50 %; Summe − 200.000 €; davon 25 %). Die Dividende ist über § 8b KStG bereits gekürzt (Schachtelprivileg ab 15 %). Kein Freibetrag, Messzahl 3,5 %, dann Hebesatz.",
-o:[["65.870 €","Hinzurechnung (300.000 + 50.000 − 200.000) · 25 % = 37.500 €; Gewerbeertrag 470.500 €; Messbetrag 16.467,50 € · 400 %."],
-["60.620 €","Die Hinzurechnung nach § 8 Nr. 1 GewStG fehlt."],
-["67.620 €","Die Miete wurde voll statt mit 50 % angesetzt."],
-["72.870 €","Der Freibetrag von 200.000 € fehlt."]],
-n:"Gesamte Ertragsteuerlast: 68.522,25 € + 65.870 € = 134.392,25 €."}
-]},
-{ id:"st-ust", area:"Steuerrecht", icon:"🧾", title:"Umsatzsteuer-Voranmeldung März 2026", topic:"Umsatzsteuer",
-sv:`Unternehmer U betreibt in Köln ein Maschinenbau- und Beratungsunternehmen (Regelbesteuerung, Sollversteuerung, monatliche Voranmeldung). Im <b>März 2026</b>:<br>
-a) U verkauft eine Maschine für <b>50.000 €</b> an Unternehmer B in Lyon (gültige französische USt-IdNr.). U befördert die Maschine selbst nach Frankreich; alle Nachweise liegen vor.<br>
-b) U berät die Privatperson P aus Bonn und erhält <b>2.380 € brutto</b>.<br>
-c) U lässt sich von einem dänischen Unternehmer (ohne Sitz/Betriebsstätte im Inland) zu seiner Software beraten: <b>10.000 € netto</b>.<br>
-d) U bewirtet Geschäftskunden im Restaurant (nur Speisen). Ordnungsgemäße Rechnung: <b>1.000 € netto + 70 € USt</b>.`,
-steps:[
-{q:"Wie ist die Lieferung an B (a) umsatzsteuerlich zu beurteilen?",
-h:"Ort der Beförderungslieferung: § 3 Abs. 6 UStG (Beginn der Beförderung). Danach die Steuerbefreiung nach § 4 Nr. 1 Buchst. b i.V.m. § 6a UStG prüfen.",
-o:[["Steuerbar in Deutschland, aber steuerfrei als innergemeinschaftliche Lieferung","Ort = Köln (Beginn der Beförderung); § 6a UStG ist erfüllt. Zusammenfassende Meldung nicht vergessen."],
-["Nicht steuerbar, da der Leistungsort in Frankreich liegt","Bei Beförderungslieferungen liegt der Ort dort, wo die Beförderung beginnt."],
-["Steuerpflichtig mit 19 % = 9.500 €","Die Befreiung nach § 4 Nr. 1 Buchst. b UStG greift."],
-["B schuldet deutsche USt nach § 13b UStG","B versteuert einen innergemeinschaftlichen Erwerb in Frankreich; § 13b UStG ist nicht einschlägig."]],
-n:"Spiegelbild: innergemeinschaftlicher Erwerb des B in Frankreich."},
-{q:"Welche Umsatzsteuer entsteht für die Beratung von P (b)?",
-h:"B2C-Leistung: Ort nach § 3a Abs. 1 UStG. Der Betrag ist brutto, also Steuer herausrechnen: Brutto / 1,19 × 0,19.",
-o:[["380 €","Ort Köln (Sitz des Leistenden); 2.380 € / 1,19 = 2.000 € netto × 19 %."],
-["452,20 €","19 % wurden auf den Bruttobetrag gerechnet."],
-["0 €, an Privatpersonen fällt keine USt an","Auch B2C-Leistungen sind steuerpflichtig, Ort ist Deutschland."],
-["155,70 €","Hier wurden 7 % verwendet. Beratung unterliegt dem Regelsteuersatz."]]},
-{q:"Wie ist die Beratung durch den dänischen Unternehmer (c) zu behandeln?",
-h:"B2B-Leistung: Ort nach § 3a Abs. 2 UStG. Wer schuldet die Steuer bei Leistungen im Ausland ansässiger Unternehmer? → § 13b Abs. 1 und 5 UStG.",
-o:[["Ort Deutschland; U schuldet 1.900 € USt (Reverse Charge) und kann sie zugleich als Vorsteuer abziehen","§ 13b Abs. 1, Abs. 5 S. 1 UStG; Vorsteuerabzug nach § 15 Abs. 1 S. 1 Nr. 4 UStG."],
-["Der Däne berechnet dänische Umsatzsteuer","Der Leistungsort liegt in Deutschland."],
-["Nicht steuerbar, weil der Leistende im Ausland sitzt","Maßgeblich ist der Sitz des unternehmerischen Empfängers (U)."],
-["Der Däne muss sich in Deutschland registrieren und 1.900 € abführen","Die Steuerschuld geht auf U über."]]},
-{q:"Wie hoch ist die abziehbare Vorsteuer von U im März 2026?",
-h:"Erfasse die Vorsteuer aus § 13b (c) und aus der Bewirtung (d). Beachte § 15 Abs. 1a S. 2 UStG und den seit 2026 geltenden Steuersatz für Restaurantspeisen.",
-o:[["1.970 €","1.900 € (§ 13b) + 70 € (Bewirtung, voll abziehbar)."],
-["1.949 €","Die 70 %-Grenze des EStG gilt nicht für die Vorsteuer (§ 15 Abs. 1a S. 2 UStG)."],
-["70 €","Die nach § 13b geschuldete Steuer ist ebenfalls als Vorsteuer abziehbar."],
-["2.090 €","Hier wurden 19 % auf die Speisen angesetzt. Seit 2026 gelten 7 % (lt. Rechnung 70 €)."]]},
-{q:"Wie hoch ist die Umsatzsteuer-Zahllast für März 2026?",
-h:"Zahllast = Umsatzsteuer (b + c) − Vorsteuer (Schritt 4).",
-o:[["310 €","USt 380 € + 1.900 € = 2.280 € − Vorsteuer 1.970 € = 310 €. § 13b wirkt hier neutral."],
-["9.810 €","Die innergemeinschaftliche Lieferung wurde fälschlich besteuert."],
-["2.280 €","Die Vorsteuer wurde nicht abgezogen."],
-["331 €","Die Bewirtungs-Vorsteuer wurde unzulässig auf 70 % gekürzt."]],
-n:"Außerdem: ZM für die igL (a) und Rechnungshinweis „steuerfreie innergemeinschaftliche Lieferung“."}
-]},
-{ id:"st-gewst-35", area:"Steuerrecht", icon:"🔧", title:"Einzelunternehmer: GewSt & § 35 EStG", topic:"Gewerbesteuer & Einkommensteuer",
-sv:`Einzelunternehmer E betreibt einen Großhandel. Gewinn aus Gewerbebetrieb 2026: <b>120.000 €</b>. Darin sind als Betriebsausgaben enthalten: Schuldzinsen <b>240.000 €</b> und Miete für eine Lagerhalle <b>80.000 €</b>. Weitere Hinzurechnungen oder Kürzungen gibt es nicht. Hebesatz: <b>420 %</b>.<br><br>
-Unterstelle, dass die anteilige tarifliche ESt auf die gewerblichen Einkünfte für die volle Anrechnung nach § 35 EStG ausreicht.`,
-steps:[
-{q:"Wie hoch ist die Hinzurechnung nach § 8 Nr. 1 GewStG?",
-h:"Finanzierungsanteile: Zinsen 100 %, Miete für unbewegliche Wirtschaftsgüter 50 %. Summe − 200.000 € Freibetrag, davon 25 %.",
-o:[["20.000 €","(240.000 + 40.000 − 200.000) · 25 % = 20.000 €."],
-["30.000 €","Die Miete wurde voll statt mit 50 % angesetzt."],
-["80.000 €","Die Kürzung auf ein Viertel fehlt."],
-["70.000 €","Der Freibetrag von 200.000 € fehlt."]]},
-{q:"Wie hoch ist der Gewerbeertrag nach Abzug des Freibetrags?",
-h:"Gewinn + Hinzurechnung = Gewerbeertrag (auf volle 100 € abrunden), dann Freibetrag für natürliche Personen (§ 11 Abs. 1 S. 3 Nr. 1 GewStG) abziehen.",
-o:[["115.500 €","120.000 + 20.000 = 140.000 € − 24.500 € = 115.500 €."],
-["140.000 €","Der Freibetrag von 24.500 € fehlt."],
-["95.500 €","Die Hinzurechnung aus Schritt 1 fehlt."],
-["120.000 €","Hinzurechnung und Freibetrag fehlen."]]},
-{q:"Wie hoch ist die Gewerbesteuer?",
-h:"Messbetrag = Gewerbeertrag × 3,5 %; Gewerbesteuer = Messbetrag × Hebesatz.",
-o:[["16.978,50 €","115.500 € × 3,5 % = 4.042,50 € × 420 %."],
-["4.042,50 €","Das ist der Messbetrag. Der Hebesatz fehlt."],
-["20.580,00 €","Hier wurde ohne Freibetrag gerechnet (140.000 € × 3,5 % × 420 %)."],
-["14.038,50 €","Hier wurde ohne Hinzurechnung gerechnet (95.500 € × 3,5 % × 420 %)."]]},
-{q:"Wie hoch ist die Steuerermäßigung nach § 35 EStG?",
-h:"4,0 × Messbetrag, höchstens die tatsächlich zu zahlende Gewerbesteuer.",
-o:[["16.170,00 €","4,0 × 4.042,50 €; das liegt unter der tatsächlichen GewSt (16.978,50 €)."],
-["16.978,50 €","Die tatsächliche GewSt ist nur die Obergrenze."],
-["15.361,50 €","Der Faktor 3,8 galt bis VZ 2019."],
-["4.042,50 €","Der Anrechnungsfaktor fehlt."]]},
-{q:"Bis zu welchem Hebesatz wird die Gewerbesteuer durch § 35 EStG rein rechnerisch vollständig ausgeglichen (ohne SolZ- und KiSt-Effekte)?",
-h:"Vergleiche die Anrechnung (4,0 × Messbetrag) mit der Gewerbesteuer (Hebesatz × Messbetrag).",
-o:[["400 %","4,0 × Messbetrag = 400 % × Messbetrag. Bei E (420 %) bleibt eine Restbelastung von 808,50 €."],
-["380 %","Das entspricht dem alten Faktor 3,8."],
-["420 %","Bei 420 % übersteigt die GewSt die Anrechnung um 808,50 €."],
-["200 %","200 % ist der Mindesthebesatz (§ 16 Abs. 4 S. 2 GewStG)."]],
-n:"Die Anrechnung ist zusätzlich auf die anteilige ESt auf gewerbliche Einkünfte begrenzt; ein Überhang geht verloren."}
-]}
-];
-/* ======================= ERWEITERUNGS-LOGIK ======================= /
-let K=null;
-(function(){
-Object.keys(PLUS_LESSONS).forEach(area=>{
-const ci=C.findIndex(c=>c.short===area);
-if(ci<0)return;
-PLUS_LESSONS[area].forEach(l=>{
-if(C[ci].lessons.some(x=>x.title===l.title))return;
-const li=C[ci].lessons.length;C[ci].lessons.push(l);
-l.qs.forEach(q=>{q.id=hash(q.q);q.ci=ci;q.li=li;ALL.push(q)});
-});
-});
-PLUS_CASES.forEach(f=>{f.ci=C.findIndex(c=>c.short===f.area)});
-S.cases=S.cases||{};
-document.head.insertAdjacentHTML("beforeend",`<style>
 .sv{border:2px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:14px;background:#fafafa;font-size:14px;line-height:1.55}
 .sv summary{font-weight:800;cursor:pointer}
 .sv table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%}
@@ -1394,69 +84,201 @@ document.head.insertAdjacentHTML("beforeend",`<style>
 .casecard{display:flex;align-items:center;gap:14px;border:2px solid var(--line);border-left:8px solid var(--c);border-radius:16px;padding:14px;margin:12px 0;cursor:pointer;box-shadow:0 3px 0 var(--line)}
 .casecard .ci{font-size:30px}.casecard small{display:block;color:#888;margin-top:3px}
 .casecard .arr{margin-left:auto;font-size:26px;color:#bbb}
-</style>`);
-})();
+@media(max-width:600px){.kbd{display:none}.fi .btn{width:100%}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="daten-bwl.js" charset="UTF-8"></script>
+<script src="daten-steuer.js" charset="UTF-8"></script>
+<script src="faelle.js" charset="UTF-8"></script>
+<script>
+// ===== WP-Lingo App (Inhalte liegen in daten-bwl.js, daten-steuer.js, faelle.js) =====
+var miss=[];
+if(typeof BWL==="undefined")miss.push("daten-bwl.js");
+if(typeof STEUER==="undefined")miss.push("daten-steuer.js");
+if(typeof FAELLE==="undefined")miss.push("faelle.js");
+const C=[
+ {title:"Angewandte BWL & VWL",short:"BWL / VWL",color:"#a560e8",icon:"📈",lessons:typeof BWL!=="undefined"?BWL:[]},
+ {title:"Steuerrecht",short:"Steuerrecht",color:"#1cb0f6",icon:"💶",lessons:typeof STEUER!=="undefined"?STEUER:[]}
+];
+const CASES=typeof FAELLE!=="undefined"?FAELLE:[];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const app=$("#app");
+const KEY="wplingo-v2", HMAX=5, HREG=30*60*1000, GOAL=30, IV=[0,1,2,4,8,16,32], DAY=864e5;
+let tab=0, L=null, K=null;
+const today=(o=0)=>{const d=new Date();d.setDate(d.getDate()+o);return d.toLocaleDateString("sv")};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>n.toLocaleString("de-DE");
+const hash=s=>{let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))|0;return(h>>>0).toString(36)};
+C.forEach((c,ci)=>c.lessons.forEach((l,li)=>l.qs.forEach(q=>{q.id=hash(q.q);q.ci=ci;q.li=li})));
+const ALL=C.flatMap(c=>c.lessons.flatMap(l=>l.qs));
+CASES.forEach(f=>{f.ci=C.findIndex(c=>c.short===f.area)});
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+const S=Object.assign({xp:0,streak:0,lastDay:null,hearts:HMAX,heartTs:Date.now(),cards:{},done:{},dayXp:0,xpDay:today(),unlockAll:false,cases:{}},load());
+if(!S.cases)S.cases={};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function regen(){if(S.hearts>=HMAX){S.heartTs=Date.now();return}const n=Math.floor((Date.now()-S.heartTs)/HREG);if(n>0){S.hearts=Math.min(HMAX,S.hearts+n);S.heartTs+=n*HREG}if(S.hearts>=HMAX)S.heartTs=Date.now();save()}
+function dayCheck(){if(S.xpDay!==today()){S.xpDay=today();S.dayXp=0}}
+const streakNow=()=>(S.lastDay===today()||S.lastDay===today(-1))?S.streak:0;
+const box=q=>(S.cards[q.id]||{}).box||0;
+const pct=qs=>qs.length?Math.round(qs.reduce((s,q)=>s+box(q),0)/(qs.length*(IV.length-1))*100):0;
+const dueList=()=>ALL.filter(q=>S.cards[q.id]&&S.cards[q.id].due<=Date.now());
+function grade(q,ok,hint){const b=ok?(hint?Math.max(box(q),1):Math.min(box(q)+1,IV.length-1)):0;S.cards[q.id]={box:b,due:Date.now()+IV[b]*DAY}}
+function addXp(x){dayCheck();S.xp+=x;S.dayXp+=x;if(S.lastDay!==today()){S.streak=S.lastDay===today(-1)?S.streak+1:1;S.lastDay=today()}}
+
+function hud(){regen();dayCheck();return`<div class="hud"><span>🔥 ${streakNow()}</span><span>💎 ${fmt(S.xp)} XP</span><span>❤️ ${S.hearts}</span></div>`}
 function nav(a){const d=dueList().length;return`<nav class="nav">
 <button class="${a==="learn"?"on":""}" onclick="home()">🏠<small>Lernen</small></button>
 <button class="${a==="cases"?"on":""}" onclick="cases()">📝<small>Fälle</small></button>
 <button class="${a==="review"?"on":""}" onclick="review()">🔁<small>Wiederholen${d?`<span class="badge">${d}</span>`:""}</small></button>
 <button class="${a==="stats"?"on":""}" onclick="stats()">📊<small>Statistik</small></button></nav>`}
-function cases(){
-L=null;K=null;const c=C[tab],list=PLUS_CASES.filter(f=>f.ci===tab);
-app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};cases()">${x.icon} ${x.short}</button>`).join("")}</div>
-<div class="banner" style="--c:${c.color}"><h2>📝 Klausurfälle</h2><div>Mehrstufige Fälle wie in der Klausur. Nach jedem Schritt siehst du die richtige Lösung und rechnest mit dem korrekten Zwischenergebnis weiter. Hier verlierst du keine Herzen.</div></div>
-${list.length?list.map(f=>{const b=S.cases[f.id];return`<div class="casecard" style="--c:${c.color}" onclick="startCase('${f.id}')"><div class="ci">${f.icon}</div><div><b>${f.title}</b><small>${f.topic} · ${f.steps.length} Schritte${b!==undefined?` · Bestwert ${b}/${f.steps.length}`:""}</small></div><span class="arr">›</span></div>`}).join(""):"<p>Für dieses Kapitel gibt es noch keine Fälle.</p>"}`+nav("cases");
-window.scrollTo(0,0);
+
+function home(){
+  L=null;K=null;const c=C[tab],offs=[0,60,85,60,0,-60,-85,-60];
+  app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};home()">${x.icon} ${x.short}</button>`).join("")}</div>
+  <div class="banner" style="--c:${c.color}"><h2>${c.title}</h2><div>${pct(c.lessons.flatMap(l=>l.qs))} % gemeistert · ${c.lessons.reduce((s,l)=>s+l.qs.length,0)} Fragen</div>
+  <div class="row"><span>🎯 ${Math.min(S.dayXp,GOAL)}/${GOAL} XP</span><div class="bar"><div style="width:${Math.min(100,S.dayXp/GOAL*100)}%"></div></div><button class="btn white" onclick="mix(${tab})">🎲 Mix</button></div></div>
+  <div class="path">${c.lessons.map((l,li)=>{const n=S.done[tab+"-"+li]||0,open=S.unlockAll||li===0||!!S.done[tab+"-"+(li-1)];
+    return`<div class="node ${open?"":"locked"}" style="--c:${c.color};transform:translateX(${offs[li%8]}px)" onclick="tryStart(${tab},${li},${open})"><div class="circle">${open?(n?"⭐":l.icon):"🔒"}</div><div class="lbl">${l.title}<small>${n?n+"× geschafft · ":""}${pct(l.qs)} % · ${l.qs.length} Fragen</small></div></div>`}).join("")}</div>`+nav("learn");
+  window.scrollTo(0,0);
 }
-function startCase(id){const f=PLUS_CASES.find(x=>x.id===id);if(!f)return;L=null;K={f,i:0,res:[],sel:null,checked:false,hint:false};renderStep()}
+function tryStart(ci,li,open){if(!open&&!confirm("Diese Lektion ist noch gesperrt. Trotzdem starten?"))return;start(ci,li)}
+function start(ci,li){const qs=shuffle([...C[ci].lessons[li].qs]).sort((a,b)=>box(a)-box(b)).slice(0,8);begin(shuffle(qs),"lesson",ci,li)}
+function mix(ci){begin(shuffle(C[ci].lessons.flatMap(l=>[...l.qs])).slice(0,10),"mix",ci,null)}
+function review(){
+  K=null;
+  let qs=dueList().sort((a,b)=>S.cards[a.id].due-S.cards[b.id].due);
+  if(!qs.length)qs=ALL.filter(q=>S.cards[q.id]).sort((a,b)=>box(a)-box(b));
+  if(!qs.length){L=null;app.innerHTML=hud()+`<div class="end"><div class="big">📚</div><h2>Noch nichts zu wiederholen</h2><p>Starte zuerst ein paar Lektionen. Fällige und falsch beantwortete Fragen landen dann automatisch hier.</p><div class="col"><button class="btn" onclick="home()">Zu den Lektionen</button></div></div>`+nav("review");return}
+  begin(shuffle(qs.slice(0,10)),"review",null,null);
+}
+function begin(qs,mode,ci,li){K=null;if(mode!=="review"){regen();if(S.hearts<=0)return noHearts()}L={mode,ci,li,queue:qs,total:qs.length,done:0,mistakes:0,firstWrong:0,hinted:0,seen:new Set()};renderQ()}
+function noHearts(){const m=Math.max(1,Math.ceil((HREG-(Date.now()-S.heartTs))/60000));L=null;
+  app.innerHTML=hud()+`<div class="end"><div class="big">💔</div><h2>Keine Herzen mehr</h2><p>Nächstes Herz in ca. ${m} Min.</p><p>Tipp: Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück. Auch Klausurfälle kosten keine Herzen.</p><div class="col"><button class="btn" onclick="review()">🔁 Jetzt wiederholen</button><button class="btn sec" onclick="home()">Zurück</button></div></div>`+nav("learn")}
+
+function renderQ(){
+  const q=L.queue[0];L.sel=null;L.checked=false;L.hint=false;
+  const c=C[q.ci],ord=shuffle(q.o.map((_,i)=>i));
+  app.innerHTML=`<div class="top"><button class="x" onclick="quit()">✕</button><div class="bar"><div style="width:${L.done/L.total*100}%"></div></div><span class="hh">${L.mode==="review"?"🔁":"❤️ "+S.hearts}</span></div>
+  <div class="card"><div class="tag" style="color:${c.color}">${c.icon} ${c.lessons[q.li].title}</div><h2 class="q">${q.q}</h2>
+  <button id="hb" class="hintbtn" onclick="showHint()">💡 Tipp zur Herangehensweise</button><div id="hint" class="hint" hidden>💡 <b>Herangehensweise:</b> ${q.h}</div>
+  <div class="opts">${ord.map((i,k)=>`<div class="opt" data-v="${i}"><span class="key">${"ABCDE"[k]}</span><div><div>${q.o[i][0]}</div><div class="why" hidden></div></div></div>`).join("")}</div></div>
+  <div id="foot" class="foot"><div class="fi"><span class="kbd">Tasten: 1–4 wählen · H Tipp · Enter prüfen</span><button id="chk" class="btn" disabled onclick="check()">Prüfen</button></div></div>`;
+  $$(".opt").forEach(b=>b.onclick=()=>pickOpt(b));
+  window.scrollTo(0,0);
+}
+function pickOpt(b){if(!L||L.checked)return;$$(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");L.sel=+b.dataset.v;$("#chk").disabled=false}
+function showHint(){const h=$("#hint");if(!L||!h)return;h.hidden=false;$("#hb").hidden=true;if(!L.checked)L.hint=true}
+
+function check(){
+  if(!L||L.checked||L.sel===null)return;
+  const q=L.queue[0];L.checked=true;const ok=L.sel===0;
+  $$(".opt").forEach(b=>{const v=+b.dataset.v,w=b.querySelector(".why");
+    b.classList.remove("sel");b.classList.add(v===0?"right":v===L.sel?"wrongsel":"dim");
+    w.innerHTML=`<b>${v===0?"✅ Stimmt:":"❌ Passt nicht:"}</b> ${q.o[v][1]}`;w.hidden=false});
+  if(!L.seen.has(q.id)){L.seen.add(q.id);grade(q,ok,L.hint);if(!ok)L.firstWrong++;else if(L.hint)L.hinted++}
+  if(ok){L.done++;L.queue.shift()}
+  else{L.mistakes++;if(L.mode!=="review"){if(S.hearts>=HMAX)S.heartTs=Date.now();S.hearts=Math.max(0,S.hearts-1)}L.queue.push(L.queue.shift())}
+  save();
+  const f=$("#foot");f.className="foot "+(ok?"ok":"bad");
+  f.innerHTML=`<div class="fi"><div class="msg"><h3>${ok?pick(["Richtig! ✅","Super! 🎉","Klasse! 💪","Genau! 🎯"]):"Leider falsch ❌ – die Frage kommt nochmal"}</h3>${q.n?`<p>📌 <b>Merke:</b> ${q.n}</p>`:""}<p style="color:#777">Begründungen zu allen Antworten stehen oben bei den Optionen.</p></div><button class="btn" onclick="next()">Weiter</button></div>`;
+  $(".top .bar>div").style.width=(L.done/L.total*100)+"%";
+  const hh=$(".hh");if(hh&&L.mode!=="review")hh.textContent="❤️ "+S.hearts;
+  $(".opts").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function next(){if(L.mode!=="review"&&S.hearts<=0)return end(false);if(!L.queue.length)return end(true);renderQ()}
+function quit(){if(confirm("Lektion wirklich abbrechen?"))home()}
+
+function end(win){
+  const m=L.mode;let xp=0,heart=false;
+  const firstOk=L.total-L.firstWrong;
+  if(win){xp=(m==="review"?5:10)+(firstOk-L.hinted)*2+L.hinted+(L.firstWrong||L.hinted?0:5);addXp(xp);
+    if(m==="lesson"){const k=L.ci+"-"+L.li;S.done[k]=(S.done[k]||0)+1}
+    if(m==="review"&&S.hearts<HMAX){S.hearts++;heart=true}save()}
+  const acc=Math.round(firstOk/L.total*100);
+  app.innerHTML=`<div class="end"><div class="big">${win?(acc===100&&!L.hinted?"🏆":"🎉"):"💔"}</div><h1>${win?(m==="review"?"Wiederholung geschafft!":"Lektion geschafft!"):"Keine Herzen mehr"}</h1>
+  ${win?`<div class="statgrid"><div><b>+${xp}</b><small>XP</small></div><div><b>${acc} %</b><small>auf Anhieb richtig</small></div><div><b>💡 ${L.hinted}</b><small>mit Tipp</small></div></div>${heart?"<p>❤️ +1 Herz fürs Wiederholen</p>":""}`
+  :`<p>Beim Wiederholen verlierst du keine Herzen und bekommst pro Runde eins zurück.</p>`}
+  <div class="col"><button class="btn" onclick="home()">Weiter</button>${win?"":`<button class="btn sec" onclick="review()">🔁 Wiederholen</button>`}</div></div>`;
+  L=null;
+}
+
+function stats(){
+  L=null;K=null;const seen=ALL.filter(q=>S.cards[q.id]).length;
+  app.innerHTML=hud()+`<h2>📊 Dein Fortschritt</h2><div class="statgrid"><div><b>${fmt(S.xp)}</b><small>XP gesamt</small></div><div><b>🔥 ${streakNow()}</b><small>Tage in Folge</small></div><div><b>${seen}/${ALL.length}</b><small>Fragen gesehen</small></div></div>
+  ${C.map(c=>`<div class="sc" style="--c:${c.color}"><h3>${c.icon} ${c.title}</h3>${c.lessons.map(l=>`<div class="srow"><span>${l.title}</span><div class="bar"><div style="width:${pct(l.qs)}%;background:${c.color}"></div></div><b>${pct(l.qs)} %</b></div>`).join("")}</div>`).join("")}
+  <h3>⚙️ Einstellungen</h3>
+  <label class="set"><input type="checkbox" ${S.unlockAll?"checked":""} onchange="S.unlockAll=this.checked;save()"> Alle Lektionen freischalten</label>
+  <div class="setbtns"><button class="btn sec" onclick="exportData()">Fortschritt exportieren</button><button class="btn sec" onclick="importData()">Importieren</button><button class="btn red" onclick="resetAll()">Alles zurücksetzen</button></div>
+  <p style="color:#999;font-size:12px;margin-top:24px">„% gemeistert“ steigt, je öfter du eine Frage hintereinander ohne Tipp richtig beantwortest. Wiederholt wird nach 1, 2, 4, 8, 16 und 32 Tagen. Eine falsche Antwort setzt die Frage zurück, mit Tipp richtig beantwortete Fragen kommen früher wieder.</p>`+nav("stats");
+}
+function exportData(){prompt("Kopiere diesen Code und füge ihn auf dem anderen Gerät unter „Importieren“ ein:",JSON.stringify(S))}
+function importData(){const t=prompt("Fortschritts-Code hier einfügen:");if(!t)return;try{Object.assign(S,JSON.parse(t));save();stats();alert("Fortschritt importiert ✔")}catch(e){alert("Der Code ist ungültig.")}}
+function resetAll(){if(confirm("Wirklich den gesamten Fortschritt löschen?")){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}}
+
+// ===== Klausurfälle =====
+function cases(){
+  L=null;K=null;const c=C[tab],list=CASES.filter(f=>f.ci===tab);
+  app.innerHTML=hud()+`<div class="tabs">${C.map((x,i)=>`<button class="tab ${i===tab?"on":""}" style="--c:${x.color}" onclick="tab=${i};cases()">${x.icon} ${x.short}</button>`).join("")}</div>
+  <div class="banner" style="--c:${c.color}"><h2>📝 Klausurfälle</h2><div>Mehrstufige Fälle wie in der Klausur. Nach jedem Schritt siehst du die richtige Lösung und rechnest mit dem korrekten Zwischenergebnis weiter. Hier verlierst du keine Herzen.</div></div>
+  ${list.length?list.map(f=>{const b=S.cases[f.id];return`<div class="casecard" style="--c:${c.color}" onclick="startCase('${f.id}')"><div class="ci">${f.icon}</div><div><b>${f.title}</b><small>${f.topic} · ${f.steps.length} Schritte${b!==undefined?` · Bestwert ${b}/${f.steps.length}`:""}</small></div><span class="arr">›</span></div>`}).join(""):"<p>Für dieses Kapitel gibt es noch keine Fälle.</p>"}`+nav("cases");
+  window.scrollTo(0,0);
+}
+function startCase(id){const f=CASES.find(x=>x.id===id);if(!f)return;L=null;K={f,i:0,res:[],sel:null,checked:false,hint:false};renderStep()}
 function renderStep(){
-const f=K.f,st=f.steps[K.i],c=C[f.ci],ord=shuffle(st.o.map((_,i)=>i));
-K.sel=null;K.checked=false;K.hint=false;
-app.innerHTML=`<div class="top"><button class="x" onclick="quitCase()">✕</button><div class="bar"><div style="width:${K.i/f.steps.length100}%"></div></div><span class="hh" style="color:${c.color}">${K.i+1}/${f.steps.length}</span></div>
-<details class="sv" ${K.i===0?"open":""}><summary>📄 Sachverhalt: ${f.title}${K.i>0?" (antippen zum Aufklappen)":""}</summary><div style="margin-top:8px">${f.sv}</div></details>
-${K.res.length?`<div class="zw"><b>Bisherige Ergebnisse:</b>${K.res.map((r,j)=>`<div>${r.ok?"✅":"❌"} ${j+1}. ${f.steps[j].o[0][0]}</div>`).join("")}</div>`:""}
-<div class="card"><div class="tag" style="color:${c.color}">${f.icon} Schritt ${K.i+1} von ${f.steps.length}</div><h2 class="q">${st.q}</h2>
-<button id="hb" class="hintbtn" onclick="hintStep()">💡 Tipp zur Herangehensweise</button><div id="hint" class="hint" hidden>💡 <b>Herangehensweise:</b> ${st.h}</div>
-<div class="opts">${ord.map((i,k)=>`<div class="opt" data-v="${i}"><span class="key">${"ABCDE"[k]}</span><div><div>${st.o[i][0]}</div><div class="why" hidden></div></div></div>`).join("")}</div></div>
-<div id="foot" class="foot"><div class="fi"><span class="kbd">Tasten: 1–4 wählen · H Tipp · Enter prüfen</span><button id="chk" class="btn" disabled onclick="checkStep()">Prüfen</button></div></div>`;
-$$(".opt").forEach(b=>b.onclick=()=>pickStep(b));
-window.scrollTo(0,0);
+  const f=K.f,st=f.steps[K.i],c=C[f.ci],ord=shuffle(st.o.map((_,i)=>i));
+  K.sel=null;K.checked=false;K.hint=false;
+  app.innerHTML=`<div class="top"><button class="x" onclick="quitCase()">✕</button><div class="bar"><div style="width:${K.i/f.steps.length*100}%"></div></div><span class="hh" style="color:${c.color}">${K.i+1}/${f.steps.length}</span></div>
+  <details class="sv" ${K.i===0?"open":""}><summary>📄 Sachverhalt: ${f.title}${K.i>0?" (antippen zum Aufklappen)":""}</summary><div style="margin-top:8px">${f.sv}</div></details>
+  ${K.res.length?`<div class="zw"><b>Bisherige Ergebnisse:</b>${K.res.map((r,j)=>`<div>${r.ok?"✅":"❌"} ${j+1}. ${f.steps[j].o[0][0]}</div>`).join("")}</div>`:""}
+  <div class="card"><div class="tag" style="color:${c.color}">${f.icon} Schritt ${K.i+1} von ${f.steps.length}</div><h2 class="q">${st.q}</h2>
+  <button id="hb" class="hintbtn" onclick="hintStep()">💡 Tipp zur Herangehensweise</button><div id="hint" class="hint" hidden>💡 <b>Herangehensweise:</b> ${st.h}</div>
+  <div class="opts">${ord.map((i,k)=>`<div class="opt" data-v="${i}"><span class="key">${"ABCDE"[k]}</span><div><div>${st.o[i][0]}</div><div class="why" hidden></div></div></div>`).join("")}</div></div>
+  <div id="foot" class="foot"><div class="fi"><span class="kbd">Tasten: 1–4 wählen · H Tipp · Enter prüfen</span><button id="chk" class="btn" disabled onclick="checkStep()">Prüfen</button></div></div>`;
+  $$(".opt").forEach(b=>b.onclick=()=>pickStep(b));
+  window.scrollTo(0,0);
 }
 function pickStep(b){if(!K||K.checked)return;$$(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");K.sel=+b.dataset.v;$("#chk").disabled=false}
 function hintStep(){const h=$("#hint");if(!K||!h)return;h.hidden=false;$("#hb").hidden=true;if(!K.checked)K.hint=true}
 function checkStep(){
-if(!K||K.checked||K.sel===null)return;
-const st=K.f.steps[K.i];K.checked=true;const ok=K.sel===0;
-$$(".opt").forEach(b=>{const v=+b.dataset.v,w=b.querySelector(".why");
-b.classList.remove("sel");b.classList.add(v===0?"right":v===K.sel?"wrongsel":"dim");
-w.innerHTML=`<b>${v===0?"✅ Stimmt:":"❌ Passt nicht:"}</b> ${st.o[v][1]}`;w.hidden=false});
-K.res.push({ok,hint:K.hint});
-const last=K.i+1>=K.f.steps.length,f=$("#foot");f.className="foot "+(ok?"ok":"bad");
-f.innerHTML=`<div class="fi"><div class="msg"><h3>${ok?pick(["Richtig! ✅","Super! 🎉","Klasse! 💪","Genau! 🎯"]):"Leider falsch ❌"}</h3>${ok?"":`<p><b>Richtig ist:</b> ${st.o[0][0]}. Damit geht es weiter.</p>`}${st.n?`<p>📌 <b>Merke:</b> ${st.n}</p>`:""}</div><button class="btn" onclick="nextStep()">${last?"Auswertung":"Nächster Schritt"}</button></div>`;
-$(".top .bar>div").style.width=((K.i+1)/K.f.steps.length100)+"%";
-$(".opts").scrollIntoView({behavior:"smooth",block:"start"});
+  if(!K||K.checked||K.sel===null)return;
+  const st=K.f.steps[K.i];K.checked=true;const ok=K.sel===0;
+  $$(".opt").forEach(b=>{const v=+b.dataset.v,w=b.querySelector(".why");
+    b.classList.remove("sel");b.classList.add(v===0?"right":v===K.sel?"wrongsel":"dim");
+    w.innerHTML=`<b>${v===0?"✅ Stimmt:":"❌ Passt nicht:"}</b> ${st.o[v][1]}`;w.hidden=false});
+  K.res.push({ok,hint:K.hint});
+  const last=K.i+1>=K.f.steps.length,f=$("#foot");f.className="foot "+(ok?"ok":"bad");
+  f.innerHTML=`<div class="fi"><div class="msg"><h3>${ok?pick(["Richtig! ✅","Super! 🎉","Klasse! 💪","Genau! 🎯"]):"Leider falsch ❌"}</h3>${ok?"":`<p><b>Richtig ist:</b> ${st.o[0][0]}. Damit geht es weiter.</p>`}${st.n?`<p>📌 <b>Merke:</b> ${st.n}</p>`:""}</div><button class="btn" onclick="nextStep()">${last?"Auswertung":"Nächster Schritt"}</button></div>`;
+  $(".top .bar>div").style.width=((K.i+1)/K.f.steps.length*100)+"%";
+  $(".opts").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function nextStep(){if(!K)return;K.i++;if(K.i>=K.f.steps.length)return endCase();renderStep()}
 function quitCase(){if(confirm("Fall wirklich abbrechen?"))cases()}
 function endCase(){
-const f=K.f,n=f.steps.length,sc=K.res.filter(r=>r.ok).length,hints=K.res.filter(r=>r.hint).length;
-let xp=0;K.res.forEach(r=>{if(r.ok)xp+=r.hint?2:4});if(K.res.every(r=>r.ok&&!r.hint))xp+=10;
-if(xp)addXp(xp);
-S.cases[f.id]=Math.max(S.cases[f.id]||0,sc);save();
-const c=C[f.ci];
-app.innerHTML=`<div class="end" style="padding-top:30px"><div class="big">${sc===n?"🏆":sc>=n/2?"🎉":"📚"}</div><h1>Fall abgeschlossen</h1>
-<div class="statgrid"><div><b>${sc}/${n}</b><small>Schritte richtig</small></div><div><b>+${xp}</b><small>XP</small></div><div><b>💡 ${hints}</b><small>Tipps genutzt</small></div></div></div>
-<div class="sc" style="--c:${c.color}"><h3>📋 Lösungsübersicht: ${f.title}</h3>${f.steps.map((s,j)=>`<p style="font-size:14px;margin:10px 0;line-height:1.45">${K.res[j].ok?"✅":"❌"} <b>${j+1}.</b> ${s.q}<br>→ <b>${s.o[0][0]}</b><br><span style="color:#777">${s.o[0][1]}</span></p>`).join("")}</div>
-<div class="col"><button class="btn" onclick="cases()">Weiter</button><button class="btn sec" onclick="startCase('${f.id}')">Fall wiederholen</button></div>`;
-K=null;window.scrollTo(0,0);
+  const f=K.f,n=f.steps.length,sc=K.res.filter(r=>r.ok).length,hints=K.res.filter(r=>r.hint).length;
+  let xp=0;K.res.forEach(r=>{if(r.ok)xp+=r.hint?2:4});if(K.res.every(r=>r.ok&&!r.hint))xp+=10;
+  if(xp)addXp(xp);
+  S.cases[f.id]=Math.max(S.cases[f.id]||0,sc);save();
+  const c=C[f.ci];
+  app.innerHTML=`<div class="end" style="padding-top:30px"><div class="big">${sc===n?"🏆":sc>=n/2?"🎉":"📚"}</div><h1>Fall abgeschlossen</h1>
+  <div class="statgrid"><div><b>${sc}/${n}</b><small>Schritte richtig</small></div><div><b>+${xp}</b><small>XP</small></div><div><b>💡 ${hints}</b><small>Tipps genutzt</small></div></div></div>
+  <div class="sc" style="--c:${c.color}"><h3>📋 Lösungsübersicht: ${f.title}</h3>${f.steps.map((s,j)=>`<p style="font-size:14px;margin:10px 0;line-height:1.45">${K.res[j].ok?"✅":"❌"} <b>${j+1}.</b> ${s.q}<br>→ <b>${s.o[0][0]}</b><br><span style="color:#777">${s.o[0][1]}</span></p>`).join("")}</div>
+  <div class="col"><button class="btn" onclick="cases()">Weiter</button><button class="btn sec" onclick="startCase('${f.id}')">Fall wiederholen</button></div>`;
+  K=null;window.scrollTo(0,0);
 }
+
 document.addEventListener("keydown",e=>{
-if(!K)return;
-if(/^[1-5]$/.test(e.key)&&!K.checked){const b=$$(".opt")[+e.key-1];if(b)pickStep(b)}
-else if(e.key.toLowerCase()==="h")hintStep();
-else if(e.key==="Enter"){const b=$("#foot .btn");if(b&&!b.disabled){e.preventDefault();b.click()}}
+  const st=L||K;if(!st)return;
+  if(/^[1-5]$/.test(e.key)&&!st.checked){const b=$$(".opt")[+e.key-1];if(b){if(L)pickOpt(b);else pickStep(b)}}
+  else if(e.key.toLowerCase()==="h"){if(L)showHint();else hintStep()}
+  else if(e.key==="Enter"){const b=$("#foot .btn");if(b&&!b.disabled){e.preventDefault();b.click()}}
 });
-home();
+
+if(miss.length){app.innerHTML='<div style="padding:20px;font-size:16px;line-height:1.5;color:#c00"><b>Diese Datei(en) fehlen oder sind fehlerhaft:</b><br>'+miss.join("<br>")+'<br><br>Bitte bei GitHub prüfen, ob die Datei genau so heißt (kleingeschrieben) und vollständig ist (letzte Zeile: <b>];</b>).</div>'}
+else home();
 </script>
 </body>
 </html>
